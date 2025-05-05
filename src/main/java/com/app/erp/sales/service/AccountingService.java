@@ -21,13 +21,12 @@ public class AccountingService {
         this.accountingRepository = accountingRepository;
     }
 
-//  public Page<Accounting> getAllAccountings(Pageable pageable) {
+    //  public Page<Accounting> getAllAccountings(Pageable pageable) {
 //    return accountingRepository.findAllWithRelations(pageable);
 //}
-public Page<Accounting> getAllAccountings(int page, int size) {
-    return accountingRepository.findAllWithRelations(PageRequest.of(page, size));
-}
-
+    public Page<Accounting> getAllAccountings(int page, int size) {
+        return accountingRepository.findAllWithRelations(PageRequest.of(page, size));
+    }
 
 
     public void deleteAccounting(Long id) {
@@ -56,8 +55,6 @@ public Page<Accounting> getAllAccountings(int page, int size) {
 
         return accountingRepository.save(existing);
     }
-
-
 
 
 }

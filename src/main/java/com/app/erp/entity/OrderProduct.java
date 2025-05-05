@@ -28,7 +28,7 @@ public class OrderProduct implements Serializable {
 
     @Column(name = "pdv")
     private double pdv; // Porez na dodatu vrednost (VAT)
-    private double pdvRate = 20; // Stopa PDV-a u procentima
+    private double pdvRate; // Stopa PDV-a u procentima
     @Column(name = "total_price", nullable = false)
     private double totalPrice;
     @Column(name = "quantity", nullable = false)
@@ -89,6 +89,14 @@ public class OrderProduct implements Serializable {
     public void setPdv(double pdv) {
         this.pdv = pdv;
         updateTotalPrice();
+    }
+    public double getPdvRate() {
+        return pdvRate;
+    }
+
+    public void setPdvRate(double pdvRate) {
+        this.pdvRate = pdvRate;
+        
     }
 
     public int getQuantity() {

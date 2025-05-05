@@ -46,9 +46,6 @@ public class ArticleWarehouse implements Serializable {
         this.product = product;
 
     }
-
-
-
     public Long getId() {
         return id;
     }

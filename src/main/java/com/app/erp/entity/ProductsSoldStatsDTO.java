@@ -7,7 +7,6 @@ public class ProductsSoldStatsDTO {
     private List<String> months;
     private List<Integer> counts;
 
-    // Konstruktori, getteri i setteri
     public ProductsSoldStatsDTO() {
         this.months = new ArrayList<>();
         this.counts = new ArrayList<>();

@@ -35,7 +35,6 @@ public class Customer implements Serializable {
     @Column(nullable = false)
     private String phone;
 
-    // Конструктори, гетери и сетери
     public Customer() {}
 
     public Customer(String firstName, String lastName, String address,

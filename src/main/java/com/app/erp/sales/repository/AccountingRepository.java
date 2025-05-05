@@ -40,5 +40,7 @@ public interface AccountingRepository extends JpaRepository<Accounting, Long> {
 
     @Query("SELECT a FROM Accounting a WHERE a.date<=:currentDate AND a.state=0")
     List<Accounting> deadlinePassed(@Param("currentDate") LocalDate currentDate);
+
+    void deleteByOrderId(Long orderId);
 }
 

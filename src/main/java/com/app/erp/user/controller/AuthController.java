@@ -75,7 +75,6 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-        System.out.println("Received login request: " + loginRequest.getEmail() + ", " + loginRequest.getPassword());
 
         User user = userRepository.findByEmail(loginRequest.getEmail());
 

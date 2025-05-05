@@ -19,7 +19,7 @@
     
     @RestController
     @RequestMapping("/api/article-warehouse")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'INVENTORY_MANAGER')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'INVENTORY_MANAGER', 'SALES_MANAGER')")
     public class ArticleWarehouseController {
     
         @Autowired
@@ -73,19 +73,39 @@
             articleWarehouseService.deleteArticleWarehouseById(id);
             return ResponseEntity.noContent().build();
         }
-    
-        @PutMapping("/{productId}")
-        public ResponseEntity<String> updateProductPrice(@PathVariable long productId, @RequestBody Map<String, Double> requestBody) {
+
+        @PutMapping("/update/{articleId}")
+        public ResponseEntity<String> updateArticleWarehouse(
+                @PathVariable Long articleId,
+                @RequestBody Map<String, Object> requestBody) {
             try {
-                if (requestBody.containsKey("purchasePrice")) {
-                    double newPrice = requestBody.get("purchasePrice");
-                    articleWarehouseService.updatePurchasePrice(productId, newPrice);
-                    return new ResponseEntity<>("Product price updated successfully", HttpStatus.OK);
+                if (requestBody.containsKey("quantity") && requestBody.containsKey("purchasePrice")) {
+                    Integer quantity = (Integer) requestBody.get("quantity");
+                    Double purchasePrice = ((Number) requestBody.get("purchasePrice")).doubleValue();
+
+                    articleWarehouseService.updateArticleWarehouse(articleId, quantity, purchasePrice);
+                    return new ResponseEntity<>("Article updated successfully", HttpStatus.OK);
                 } else {
                     return new ResponseEntity<>("Invalid request body", HttpStatus.BAD_REQUEST);
                 }
             } catch (Exception e) {
-                return new ResponseEntity<>("Failed to update product price: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>("Failed to update article: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
+
+
+//        @PutMapping("/{productId}")
+//        public ResponseEntity<String> updateProductPrice(@PathVariable long productId, @RequestBody Map<String, Double> requestBody) {
+//            try {
+//                if (requestBody.containsKey("purchasePrice")) {
+//                    double newPrice = requestBody.get("purchasePrice");
+//                    articleWarehouseService.updatePurchasePrice(productId, newPrice);
+//                    return new ResponseEntity<>("Product price updated successfully", HttpStatus.OK);
+//                } else {
+//                    return new ResponseEntity<>("Invalid request body", HttpStatus.BAD_REQUEST);
+//                }
+//            } catch (Exception e) {
+//                return new ResponseEntity<>("Failed to update product price: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//            }
+//        }
     }

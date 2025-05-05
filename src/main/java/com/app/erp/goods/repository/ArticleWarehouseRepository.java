@@ -41,6 +41,7 @@ List<ArticleWarehouse> findByWarehouseId(@Param("warehouseId") Long warehouseId)
     @Query("SELECT aw FROM ArticleWarehouse aw WHERE aw.warehouse.id = :warehouseId")
     Page<ArticleWarehouse> findByWarehouseId(@Param("warehouseId") Long warehouseId, Pageable pageable);
 
+    List<ArticleWarehouse> findByProductIdOrderByPurchasePriceAsc(Long productId);
    
 
 

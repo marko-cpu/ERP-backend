@@ -5,6 +5,7 @@ import com.app.erp.entity.Reservation;
 import com.app.erp.goods.exceptions.ResourceNotFoundException;
 import com.app.erp.goods.repository.ReservationRepository;
 import com.app.erp.sales.service.OrderService;
+import com.app.erp.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class ReservationService {
 
@@ -20,18 +23,22 @@ public class ReservationService {
     private final ProductService productService;
     private final OrderService orderService;
     private final ModelMapper modelMapper;
+    private final NotificationService notificationService;
+
 
     @Autowired
     public ReservationService(
             ReservationRepository reservationRepository,
             ProductService productService,
             OrderService orderService,
-            ModelMapper modelMapper
+            ModelMapper modelMapper,
+            NotificationService notificationService
     ) {
         this.reservationRepository = reservationRepository;
         this.productService = productService;
         this.orderService = orderService;
         this.modelMapper = modelMapper;
+        this.notificationService = notificationService;
     }
 
     public Page<ReservationDTO> getAllReservations(int page, int size) {
@@ -66,6 +73,13 @@ public class ReservationService {
             throw new ResourceNotFoundException("Reservation not found");
         }
         reservationRepository.deleteById(id);
+
+        // Notifikacija za uspešno otkazivanje
+        notificationService.createAndSendNotification(
+                "RESERVATION_CANCELLED",
+                "Cancelled reservation with ID: " + id,
+                List.of("SALES_MANAGER", "INVENTORY_MANAGER")
+        );
     }
 
     private ReservationDTO convertToDTO(Reservation reservation) {

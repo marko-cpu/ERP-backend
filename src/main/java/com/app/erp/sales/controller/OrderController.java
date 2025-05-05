@@ -87,7 +87,7 @@ public class OrderController {
             Number totalPriceNumber = (Number) requestBody.get("totalPrice");
             Number accountingIdNumber = (Number) requestBody.get("accounting_id");
 
-            if(totalPriceNumber == null || accountingIdNumber == null) {
+            if (totalPriceNumber == null || accountingIdNumber == null) {
                 return ResponseEntity.badRequest().body("Missing required parameters");
             }
 
@@ -102,6 +102,16 @@ public class OrderController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteOrder(@PathVariable Long id) {
+        try {
+            orderService.deleteOrder(id);
+            return ResponseEntity.ok("Order deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting order: " + e.getMessage());
+        }
+    }
 
 
 }

@@ -146,6 +146,12 @@ public Product updateProduct(@PathVariable Long id, @RequestBody Product product
         }
     }
 
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> deleteProductById(@PathVariable Long id) {
+            productService.deleteProductById(id);
+            return ResponseEntity.noContent().build();
+        }
+
     @GetMapping("/productState/{productId}")
     public ResponseEntity<String> getProductState(@PathVariable("productId") long productId) {
         try{

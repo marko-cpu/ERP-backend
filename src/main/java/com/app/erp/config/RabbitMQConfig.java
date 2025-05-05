@@ -5,10 +5,7 @@ import com.app.erp.goods.listeners.ReservationListeners;
 import com.app.erp.goods.listeners.SoldProductsListeners;
 import com.app.erp.sales.listeners.ProductEventListener;
 import com.app.erp.sales.listeners.ReservationResponseListeners;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
@@ -25,13 +22,14 @@ public class RabbitMQConfig {
     public static final String PRODUCTS_TOPIC_EXCHANGE_NAME = "products-exchange";
     public static final String ORDERS_TOPIC_EXCHANGE_NAME = "orders-exchange";
 
+
     @Bean
     TopicExchange productExchange() {
-        return new TopicExchange(PRODUCTS_TOPIC_EXCHANGE_NAME);
+        return new TopicExchange(PRODUCTS_TOPIC_EXCHANGE_NAME, true, false);
     }
     @Bean
     TopicExchange ordersExchange() {
-        return new TopicExchange(ORDERS_TOPIC_EXCHANGE_NAME);
+        return new TopicExchange(ORDERS_TOPIC_EXCHANGE_NAME, true, false);
     }
 
     public static final String PRODUCTS_QUEUE = "products-queue";
@@ -43,23 +41,23 @@ public class RabbitMQConfig {
     // Queues
     @Bean
     Queue productQueue() {
-        return new Queue(PRODUCTS_QUEUE, false);
+        return new Queue(PRODUCTS_QUEUE, true, false, false);
     }
     @Bean
     Queue reservationQueue() {
-        return new Queue(RESERVATION_QUEUE, false);
+        return new Queue(RESERVATION_QUEUE,  true, false, false);
     }
     @Bean
     Queue reservationResponseQueue() {
-        return new Queue(RESERVATION_RESPONSE_QUEUE, false);
+        return new Queue(RESERVATION_RESPONSE_QUEUE,  true, false, false);
     }
     @Bean
     Queue soldProductsQueue() {
-        return new Queue(SOLD_PRODUCTS_QUEUE, false);
+        return new Queue(SOLD_PRODUCTS_QUEUE,  true, false, false);
     }
     @Bean
     Queue cancelReservationQueue() {
-        return new Queue(CANCEL_RESERVATION_QUEUE, false);
+        return new Queue(CANCEL_RESERVATION_QUEUE,  true, false, false);
     }
 
 
@@ -92,10 +90,12 @@ public class RabbitMQConfig {
     @Bean
     SimpleMessageListenerContainer productEventListenerContainer(ConnectionFactory connectionFactory,
                                                                  MessageListenerAdapter productEventListenerAdapter) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        SimpleMessageListenerContainer container = null;
+        container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(PRODUCTS_QUEUE);
         container.setMessageListener(productEventListenerAdapter);
+      //  container.setAcknowledgeMode(AcknowledgeMode.MANUAL); // Add this line
         return container;
     }
     @Bean

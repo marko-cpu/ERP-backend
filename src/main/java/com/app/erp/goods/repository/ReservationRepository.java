@@ -28,4 +28,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     Page<Reservation> findAll(Pageable pageable);
 
+    List<Reservation> findByOrderId(Long orderId);
+
+    void deleteByOrderId(Long orderId);
 }

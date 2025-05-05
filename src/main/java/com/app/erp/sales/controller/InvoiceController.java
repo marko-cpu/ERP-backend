@@ -21,7 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/invoices")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'ACCOUNTANT')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'ACCOUNTANT', 'SALES_MANAGER')")
 public class InvoiceController {
 
     private final InvoiceService invoiceService;

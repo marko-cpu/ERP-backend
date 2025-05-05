@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/warehouses")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'INVENTORY_MANAGER')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'INVENTORY_MANAGER', 'SALES_MANAGER')")
 public class WarehouseController {
 
     @Autowired

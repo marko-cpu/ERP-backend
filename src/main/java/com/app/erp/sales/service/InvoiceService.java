@@ -85,7 +85,7 @@ public class InvoiceService {
         List<Invoice> invoices = invoiceRepository.findAllWithOrderProducts();
         Map<String, Integer> monthlySales = new LinkedHashMap<>();
 
-        // Inicijalizacija svih mjeseci za tekuću godinu
+        // Inicialization of monthlySales
         LocalDate now = LocalDate.now();
         Year currentYear = Year.now();
         for (int i = 1; i <= 12; i++) {
@@ -131,133 +131,107 @@ public class InvoiceService {
             Document document = new Document(pdfDoc);
             document.setMargins(40, 40, 40, 40);
 
-            // Add logo
-//            try {
-//                ClassPathResource logoResource = new ClassPathResource("static/images/logo.png");
-//                Image logo = new Image(ImageDataFactory.create(logoResource.getURL()))
-//                        .setWidth(100)
-//                        .setHorizontalAlignment(HorizontalAlignment.LEFT);
-//                document.add(logo);
-//            } catch (MalformedURLException e) {
-//                logger.warn("Company logo not found or cannot be loaded: {}", e.getMessage());
-//            }
+            Customer customer = invoice.getAccounting().getOrder().getCustomer();
 
-            // Header Section
-            Paragraph header = new Paragraph()
-                    .add(new Text("INVOICE\n").setFontSize(24).setBold().setFontColor(new DeviceRgb(0, 102, 204)))
-                    .add(new Text("Your Company Name\n").setFontSize(12).setBold())
-                    .add(new Text("123 Business Street, City, Country\n"))
-                    .add(new Text("VAT: XX123456789 | Tel: +381 123 4567\n"))
-                    .add(new Text("Email: info@company.com | Web: www.company.com"))
-                    .setTextAlignment(TextAlignment.LEFT)
-                    .setMarginBottom(20);
+            // Header
+            Paragraph header = new Paragraph("INVOICE")
+                    .setFontSize(26)
+                    .setBold()
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setFontColor(new DeviceRgb(0, 102, 204))
+                    .setMarginBottom(10);
             document.add(header);
 
-            // Seller & Buyer Info Table
-            Customer customer = invoice.getAccounting().getOrder().getCustomer();
+            Paragraph companyInfo = new Paragraph()
+                    .add(new Text("ERP Company\n").setBold())
+                    .add("123 Business Street\nKragujevac, Serbia\n")
+                    .add("Tel: +381 123 4567 | Email: info@company.com")
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setFontSize(10)
+                    .setFontColor(new DeviceRgb(100, 100, 100))
+                    .setMarginBottom(30);
+            document.add(companyInfo);
+
+            // Seller & Buyer Info
             Table infoTable = new Table(UnitValue.createPercentArray(new float[]{45, 10, 45}))
                     .setWidth(UnitValue.createPercentValue(100))
                     .setMarginBottom(30);
 
-            // Seller Info
-            Cell sellerCell = new Cell()
-                    .add(new Paragraph("From:\n" +
-                            "Your Company Name\n" +
-                            "123 Business Street\n" +
-                            "City, Country\n" +
-                            "VAT: XX123456789"))
-                    .setBorder(Border.NO_BORDER);
-            infoTable.addCell(sellerCell);
+            infoTable.addCell(new Cell()
+                    .add(new Paragraph("From:\nERP Company\n123 Business Street\nKragujevac, Serbia"))
+                    .setBorder(Border.NO_BORDER)
+                    .setFontSize(10));
 
-            infoTable.addCell(new Cell().setBorder(Border.NO_BORDER)); // Empty spacer cell
+            infoTable.addCell(new Cell().setBorder(Border.NO_BORDER));
 
-            // Buyer Info
-            Cell buyerCell = new Cell()
+            infoTable.addCell(new Cell()
                     .add(new Paragraph("Bill To:\n" +
                             customer.getFirstName() + "\n" +
-                            customer.getAddress() + "\n" +
-                            "VAT: " + customer.getId()))
-                    .setBorder(Border.NO_BORDER);
-            infoTable.addCell(buyerCell);
+                            customer.getAddress()))
+                    .setBorder(Border.NO_BORDER)
+                    .setFontSize(10));
 
             document.add(infoTable);
 
-            // Invoice Details Table
+            // Invoice metadata
             Table invoiceDetails = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
-                    .setWidth(UnitValue.createPercentValue(100))
+                    .setWidth(UnitValue.createPercentValue(50))
                     .setMarginBottom(20);
 
             invoiceDetails.addCell(createDetailCell("Invoice Number:", true));
             invoiceDetails.addCell(createDetailCell(invoice.getInvoiceNumber(), false));
             invoiceDetails.addCell(createDetailCell("Invoice Date:", true));
             invoiceDetails.addCell(createDetailCell(invoice.getPayDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), false));
-            invoiceDetails.addCell(createDetailCell("Due Date:", true));
-            invoiceDetails.addCell(createDetailCell(invoice.getPayDate().plusDays(30).format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), false));
 
             document.add(invoiceDetails);
 
             // Items Table
-            Table table = new Table(UnitValue.createPercentArray(new float[]{35, 10, 15, 10, 15, 15}))
+            Table itemTable = new Table(UnitValue.createPercentArray(new float[]{30, 10, 15, 15, 15, 20}))
                     .setWidth(UnitValue.createPercentValue(100))
-                    .setMarginBottom(30);
+                    .setMarginBottom(20);
 
-            // Table Header
-            String[] headers = {"Description", "Qty", "Unit Price", "VAT %", "VAT Amount", "Total"};
+            String[] headers = {"Product Name", "Qty", "Measure Unit", "Unit Price", "PDV", "Total"};
             for (String headerText : headers) {
-                table.addHeaderCell(createCell(headerText, true));
+                itemTable.addHeaderCell(createCell(headerText, true));
             }
 
             double subtotal = 0;
-            double totalVat = 0;
+            double totalPdv = 0;
 
-            // Table Rows
             for (OrderProduct op : invoice.getAccounting().getOrder().getProductList()) {
                 double itemTotal = op.getPricePerUnit() * op.getQuantity();
-                double itemVat = op.getPdv();
 
-                table.addCell(createCell(op.getProduct().getProductName(), false));
-                table.addCell(createCell(String.valueOf(op.getQuantity()), false));
-                table.addCell(createCell(formatCurrency(op.getPricePerUnit()), false));
-                table.addCell(createCell(String.format("%.0f%%", op.getPdv()), false));
-                table.addCell(createCell(formatCurrency(itemVat), false));
-                table.addCell(createCell(formatCurrency(op.getTotalPrice()), false));
+                itemTable.addCell(createCell(op.getProduct().getProductName(), false));
+                itemTable.addCell(createCell(String.valueOf(op.getQuantity()), false));
+                itemTable.addCell(createCell(op.getProduct().getMeasureUnit(), false));
+                itemTable.addCell(createCell(formatCurrency(op.getPricePerUnit()), false));
+                itemTable.addCell(createCell(formatCurrency(op.getPdv()), false));
+                itemTable.addCell(createCell(formatCurrency(itemTotal), false));
 
                 subtotal += itemTotal;
-                totalVat += itemVat;
+                totalPdv += op.getPdv();
             }
 
-            document.add(table);
+            document.add(itemTable);
 
             // Totals Table
             Table totalsTable = new Table(UnitValue.createPercentArray(new float[]{70, 30}))
-                    .setWidth(UnitValue.createPercentValue(50))
-                    .setHorizontalAlignment(HorizontalAlignment.RIGHT);
+                    .setWidth(UnitValue.createPercentValue(40))
+                    .setHorizontalAlignment(HorizontalAlignment.RIGHT)
+                    .setMarginBottom(10);
 
             addTotalRow(totalsTable, "Subtotal:", subtotal);
-            addTotalRow(totalsTable, String.format("VAT (%d%%):", (int)invoice.getAccounting().getOrder().getProductList().get(0).getPdv()), totalVat);
-            addTotalRow(totalsTable, "Total Due:", invoice.getTotalPrice());
+            addTotalRow(totalsTable, "PDV:", totalPdv);
+            addTotalRow(totalsTable, "Total:", invoice.getTotalPrice());
 
             document.add(totalsTable);
 
-            // Payment Instructions
-            Paragraph paymentInstructions = new Paragraph()
-                    .add(new Text("\nPayment Information:\n").setBold())
-                    .add(new Text("Bank: Example Bank\n"))
-                    .add(new Text("Account: XX00 1234 5678 9012 3456 7890\n"))
-                    .add(new Text("SWIFT/BIC: EXMPLXXX\n\n"))
-                    .add(new Text("Please make payment within 30 days of invoice date.").setItalic())
-                    .setFontColor(new DeviceRgb(100, 100, 100))
-                    .setMarginTop(20);
-            document.add(paymentInstructions);
-
             // Footer
-            Paragraph footer = new Paragraph()
-                    .add(new Text("Thank you for your business!\n"))
-                    .add(new Text("www.company.com | Tel: +381 123 4567 | Email: info@company.com"))
-                    .setFontSize(10)
-                    .setFontColor(new DeviceRgb(150, 150, 150))
+            Paragraph footer = new Paragraph("Thank you for your business!\nwww.company.com | Tel: +381 123 4567")
+                    .setFontSize(9)
+                    .setFontColor(new DeviceRgb(120, 120, 120))
                     .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginTop(30);
+                    .setMarginTop(40);
             document.add(footer);
 
             document.close();
@@ -267,23 +241,26 @@ public class InvoiceService {
         }
     }
 
-    // Helper methods
+// --- Helper Methods ---
+
     private Cell createCell(String content, boolean isHeader) {
-        Paragraph p = new Paragraph(content);
+        Paragraph p = new Paragraph(content).setFontSize(10);
         Cell cell = new Cell().add(p);
 
         if (isHeader) {
-            cell.setBackgroundColor(new DeviceRgb(240, 240, 240))
+            cell.setBackgroundColor(new DeviceRgb(220, 230, 245))
                     .setBold()
                     .setTextAlignment(TextAlignment.CENTER)
-                    .setPadding(8)
-                    .setBorderBottom(new SolidBorder(1.5f));
+                    .setPadding(6)
+                    .setBorderBottom(new SolidBorder(new DeviceRgb(150, 150, 150), 1.5f));
         } else {
-            cell.setPadding(8)
-                    .setBorderBottom(new SolidBorder(0.5f));
+            cell.setPadding(6)
+                    .setBorderBottom(new SolidBorder(new DeviceRgb(200, 200, 200), 0.5f));
         }
 
-        if (content.startsWith("€") || content.matches("\\d+(\\.\\d+)?")) {
+        // Automatsko poravnanje za numeričke vrednosti
+        boolean isNumericValue = content.startsWith("€") || content.matches("\\d+(\\.\\d+)?");
+        if (isNumericValue) {
             p.setTextAlignment(TextAlignment.RIGHT);
         }
 
@@ -291,30 +268,41 @@ public class InvoiceService {
     }
 
     private Cell createDetailCell(String content, boolean isLabel) {
-        Paragraph p = new Paragraph(content);
+        Paragraph p = new Paragraph(content).setFontSize(10);
         Cell cell = new Cell().add(p)
                 .setBorder(Border.NO_BORDER)
-                .setPadding(2);
+                .setPaddingTop(4)
+                .setPaddingBottom(4);
 
         if (isLabel) {
             p.setBold().setTextAlignment(TextAlignment.RIGHT);
+        } else {
+            p.setTextAlignment(TextAlignment.LEFT);
         }
+
         return cell;
     }
 
-    private void addTotalRow(Table table, String label, double value) {
-        table.addCell(new Cell()
-                .add(new Paragraph(label))
-                .setBorder(Border.NO_BORDER)
-                .setTextAlignment(TextAlignment.RIGHT));
 
-        table.addCell(new Cell()
-                .add(new Paragraph(formatCurrency(value)))
-                .setBorder(Border.NO_BORDER)
-                .setTextAlignment(TextAlignment.RIGHT));
+    private void addTotalRow(Table table, String label, double value) {
+        table.addCell(
+                new Cell()
+                        .add(new Paragraph(label).setFontSize(10))
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.RIGHT)
+        );
+
+        table.addCell(
+                new Cell()
+                        .add(new Paragraph(formatCurrency(value)).setFontSize(10).setBold())
+                        .setBorder(Border.NO_BORDER)
+                        .setTextAlignment(TextAlignment.RIGHT)
+        );
     }
+
 
     private String formatCurrency(double amount) {
         return String.format("€%,.2f", amount);
     }
+
 }

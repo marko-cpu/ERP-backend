@@ -60,24 +60,29 @@
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
             http
                     .csrf(AbstractHttpConfigurer::disable)
-    
+
+                    .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
                     .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests((authorize) -> authorize
                             .requestMatchers("health","info").permitAll()
                             .requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers("/api/notifications","/api/notifications/**").permitAll()
+                            .requestMatchers("/ws/**", "/ws",  "/topic/**").permitAll()
+                            .requestMatchers("/websocket").permitAll()
                             .requestMatchers("/verify").permitAll()
 
                             .requestMatchers("/users/me/**").permitAll()
                             .requestMatchers("/api/product/**").permitAll()
                             .requestMatchers("/api/orders/**").permitAll()
+                            .requestMatchers("/api/customers/**").permitAll()
                             .requestMatchers("/api/warehouses/**").permitAll()
+                            .requestMatchers("/api/product-warehouse/**").permitAll()
                             .requestMatchers("/api/article-warehouse/**").permitAll()
                             .requestMatchers("/api/invoices/**").permitAll()
                             .requestMatchers("/api/accountings/**").permitAll()
                             .requestMatchers("/api/reservations/**").permitAll()
                             .requestMatchers("/api/admin/**").permitAll()
-    
     
                             .anyRequest().authenticated()
                     )

@@ -11,6 +11,7 @@ import com.app.erp.messaging.ReservationMessage;
 import com.app.erp.messaging.SoldProductMessage;
 import com.app.erp.sales.repository.*;
 import com.app.erp.user.repository.UserRepository;
+import com.app.erp.user.service.NotificationService;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -20,6 +21,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +66,9 @@ public class OrderService {
     private CustomerRepository customerRepository;
 
     @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
     private UserRepository userRepository;
     @PersistenceContext
     private EntityManager entityManager;
@@ -91,7 +96,7 @@ public class OrderService {
         return orderRepository.findById(id);
     }
 
-    public long getOrderCount()  {
+    public long getOrderCount() {
         return orderRepository.count();
     }
 
@@ -112,16 +117,15 @@ public class OrderService {
 
         Customer customer;
         if (orderRequest.getCustomer().getId() != null) {
-            // Постојећи купац
+            // Existing customer
             customer = customerRepository.findById(orderRequest.getCustomer().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
         } else {
-            // Нови купац - провери обавезна поља
+            // New customer check email
             if (orderRequest.getCustomer().getEmail() == null) {
                 throw new IllegalArgumentException("Email is required for new customers");
             }
 
-            // Провери да ли већ постоји купац са истим email-ом
             Optional<Customer> existingCustomer = customerRepository.findByEmail(
                     orderRequest.getCustomer().getEmail()
             );
@@ -149,9 +153,12 @@ public class OrderService {
 
         // System.out.println("Creating order for customer: " + order.getCustomerName());
 
-
         if (order.getProductList() == null || order.getProductList().isEmpty()) {
             throw new IllegalArgumentException("Order must contain at least one product");
+        }
+
+        if (!isStockAvailable(order.getProductList())) {
+            throw new RuntimeException("Not enough stock available for the products in the order");
         }
 
         this.orderRepository.save(order);
@@ -185,21 +192,59 @@ public class OrderService {
                     .orElseThrow(() -> new RuntimeException("Product not found for ID: " + productId));
 
 
-
             orderProduct.setPricePerUnit(product.getPrice());
             orderProduct.setTotalPrice((orderProduct.getPricePerUnit() + (orderProduct.getPdv() * orderProduct.getPricePerUnit())) * orderProduct.getQuantity());
+            orderProduct.setPdvRate(orderProduct.getPdvRate());
             orderProduct.setPdv(orderProduct.calculatePdv());
             orderProduct.setOrder(order);
             this.orderProductRepository.save(orderProduct);
             totalPrice += orderProduct.getTotalPrice();
         }
 
+        // Notification for new order
+        notificationService.createAndSendNotification(
+                "ORDER_CREATED",
+                "New order #" + order.getId() + " created",
+                List.of("ADMIN", "ACCOUNTANT", "INVENTORY_MANAGER")
+        );
+
         Accounting tmpAccounting = new Accounting(order, dateOfPayment, totalPrice);
+        accountingRepository.save(tmpAccounting);
+
+        //Notification for new accounting
+        notificationService.createAndSendNotification(
+                "ACCOUNTING_CREATED",
+                "New accounting #" + tmpAccounting.getId() + " created",
+                List.of("ADMIN", "ACCOUNTANT")
+        );
+
+
         ReservationMessage reservationMessage = new ReservationMessage(productList, tmpAccounting);
         rabbitTemplate.convertAndSend(ORDERS_TOPIC_EXCHANGE_NAME, "reservation.queue", reservationMessage);
 
 
-    //    System.out.println("Order created successfully with total price: " + totalPrice);
+        //    System.out.println("Order created successfully with total price: " + totalPrice);
+    }
+
+    private boolean isStockAvailable(List<OrderProduct> productList) {
+        for (OrderProduct orderProduct : productList) {
+            int totalStock = 0;
+            List<ArticleWarehouse> articleWarehouses = articleWarehouseRepository.findStateOfWarehousesForProductId(orderProduct.getProduct().getId());
+            for (ArticleWarehouse aw : articleWarehouses) {
+                totalStock += aw.getQuantity();
+            }
+
+            // Get total reserved quantity for this product
+            int reservedQty = reservationRepository.findTotalReservedQuantityByProductId(orderProduct.getProduct().getId())
+                    .orElse(0);
+
+            int availableStock = totalStock - reservedQty;
+
+            if (orderProduct.getQuantity() > availableStock) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -226,6 +271,13 @@ public class OrderService {
             Invoice invoice = new Invoice(accounting, totalPrice, payDate);
             invoiceRepository.save(invoice);
 
+            // Notification for new invoice
+            notificationService.createAndSendNotification(
+                    "INVOICE_CREATED",
+                    "Invoice for order #" + invoice.getAccounting().getOrder().getId(),
+                    List.of("ADMIN", "ACCOUNTANT", "SALES_MANAGER")
+            );
+
             SoldProductMessage soldProductMessage = new SoldProductMessage(invoice.getAccounting().getOrder().getId());
             rabbitTemplate.convertAndSend(ORDERS_TOPIC_EXCHANGE_NAME,
                     "soldproducts.queue", soldProductMessage);
@@ -235,20 +287,24 @@ public class OrderService {
         }
     }
 
-   // @Scheduled(cron = "0 0 9 * * MON-FRI")
-    @PostConstruct
+    @Scheduled(cron = "0 0 9 * * MON-FRI")
+    //@PostConstruct
     public void dailyCheckAccountings() {
 
         checkAccountings();
         deleteCancelledAccountings();
 
-
+        // Notification for a daily report
+        notificationService.createAndSendNotification(
+                "DAILY_REPORT",
+                "Daily accounting report",
+                List.of("ACCOUNTANT", "ADMIN", "SALES_MANAGER")
+        );
     }
 
 
-
     @Transactional
-    private void deleteCancelledAccountings() {
+    protected void deleteCancelledAccountings() {
         List<Accounting> accountings = accountingRepository.findByStateTwo();
         if (accountings.isEmpty()) {
             return;
@@ -273,6 +329,14 @@ public class OrderService {
                 try {
                     accounting.setState((short) 2);
                     accountingRepository.save(accounting);
+
+                    // Notification for canceled order
+                    notificationService.createAndSendNotification(
+                            "ORDER_CANCELLED",
+                            "Order  #" + accounting.getOrder().getId() + " automatically cancelled",
+                            List.of("SALES_MANAGER", "ADMIN", "ACCOUNTANT")
+                    );
+
                     long orderId = accounting.getOrder().getId();
                     ReservationCancellationMessage reservationCancellation = new ReservationCancellationMessage(orderId);
                     rabbitTemplate.convertAndSend(ORDERS_TOPIC_EXCHANGE_NAME, "cancelreservation.queue", reservationCancellation);
@@ -287,8 +351,24 @@ public class OrderService {
     }
 
 
+    @Transactional
+    public void deleteOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+//        // Provera da li postoji faktura
+//        if (order.getAccounting() != null && order.getAccounting().getInvoice() != null) {
+//            throw new RuntimeException("Cannot delete order with existing invoice");
+//        }
+
+        // Delete related entities
+        orderProductRepository.deleteByOrderId(orderId);
+        accountingRepository.deleteByOrderId(orderId);
+        reservationRepository.deleteByOrderId(orderId);
+        orderRepository.delete(order);
 
 
+    }
 
 
 }
