@@ -1,6 +1,6 @@
 package com.app.erp.setting;
 
-import com.app.erp.entity.Setting;
+import com.app.erp.entity.setting.Setting;
 import com.app.erp.entity.SettingCategory;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

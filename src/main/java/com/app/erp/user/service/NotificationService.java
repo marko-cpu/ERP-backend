@@ -1,6 +1,10 @@
 package com.app.erp.user.service;
 
-import com.app.erp.entity.*;
+import com.app.erp.dto.notification.NotificationDTO;
+import com.app.erp.entity.notification.Notification;
+import com.app.erp.entity.notification.UserNotification;
+import com.app.erp.entity.user.Role;
+import com.app.erp.entity.user.User;
 import com.app.erp.goods.exceptions.NotFoundException;
 import com.app.erp.goods.exceptions.NotificationAccessDeniedException;
 import com.app.erp.security.UserDetails;
@@ -110,7 +114,7 @@ public class NotificationService {
                 .collect(Collectors.toMap(
                         un -> un.getNotification().getId(),
                         un -> un,
-                        (existing, replacement) -> existing, // Одаберите постојећи у случају дупликата
+                        (existing, replacement) -> existing,
                         LinkedHashMap::new
                 ));
 

@@ -1,8 +1,8 @@
 package com.app.erp.sales.controller;
 
 import com.app.erp.entity.Customer;
-import com.app.erp.entity.Order;
-import com.app.erp.entity.OrderRequest;
+import com.app.erp.entity.order.Order;
+import com.app.erp.dto.order.OrderRequest;
 import com.app.erp.sales.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

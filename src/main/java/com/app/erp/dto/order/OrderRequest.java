@@ -1,4 +1,7 @@
-package com.app.erp.entity;
+package com.app.erp.dto.order;
+
+import com.app.erp.dto.customer.CustomerDTO;
+import com.app.erp.entity.order.OrderProduct;
 
 import java.util.List;
 

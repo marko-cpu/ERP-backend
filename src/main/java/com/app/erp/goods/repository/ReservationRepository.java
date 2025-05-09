@@ -1,7 +1,7 @@
 package com.app.erp.goods.repository;
 
 
-import com.app.erp.entity.Reservation;
+import com.app.erp.entity.reservation.Reservation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

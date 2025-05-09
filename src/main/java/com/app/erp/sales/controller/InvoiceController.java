@@ -1,8 +1,8 @@
 package com.app.erp.sales.controller;
 
 
-import com.app.erp.entity.Invoice;
-import com.app.erp.entity.ProductsSoldStatsDTO;
+import com.app.erp.entity.invoice.Invoice;
+import com.app.erp.dto.order.ProductsSoldStatsDTO;
 import com.app.erp.sales.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

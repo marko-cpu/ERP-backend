@@ -22,13 +22,13 @@ public class ProductEventListener implements Serializable {
     @RabbitListener(queues = "products-queue")
     public void processProductEvent(ProductMessage event) {
 
-        try {
-            if (event.getProduct() == null) throw new IllegalArgumentException("Null product");
-            System.out.println("Processing product: " + event.getProduct().getId());
-
-        } catch (Exception e) {
-            System.err.println("Error processing message: " + e.getMessage());
-        }
+//        try {
+//            if (event.getProduct() == null) throw new IllegalArgumentException("Null product");
+//            System.out.println("Processing product: " + event.getProduct().getId());
+//
+//        } catch (Exception e) {
+//            System.err.println("Error processing message: " + e.getMessage());
+//        }
 
         System.out.println("Module sales receives a message: " + event.getType());
     }

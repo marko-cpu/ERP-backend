@@ -2,7 +2,7 @@ package com.app.erp.sales.service;
 
 
 
-import com.app.erp.entity.OrderProduct;
+import com.app.erp.entity.order.OrderProduct;
 import com.app.erp.sales.repository.OrderProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

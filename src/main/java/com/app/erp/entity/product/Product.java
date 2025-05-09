@@ -1,6 +1,7 @@
-package com.app.erp.entity;
+package com.app.erp.entity.product;
 
 
+import com.app.erp.entity.Category;
 import jakarta.persistence.*;
 
 import java.io.Serializable;

@@ -1,8 +1,8 @@
 package com.app.erp.user.repository;
 
-import com.app.erp.entity.Notification;
-import com.app.erp.entity.User;
-import com.app.erp.entity.UserNotification;
+import com.app.erp.entity.notification.Notification;
+import com.app.erp.entity.user.User;
+import com.app.erp.entity.notification.UserNotification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -2,9 +2,8 @@ package com.app.erp.goods.repository;
 
 
 
-import com.app.erp.entity.ArticleWarehouse;
-import com.app.erp.entity.Product;
-import com.app.erp.entity.Warehouse;
+import com.app.erp.entity.warehouse.ArticleWarehouse;
+import com.app.erp.entity.product.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

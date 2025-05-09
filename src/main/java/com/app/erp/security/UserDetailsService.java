@@ -1,7 +1,7 @@
 package com.app.erp.security;
 
 
-import com.app.erp.entity.User;
+import com.app.erp.entity.user.User;
 import com.app.erp.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

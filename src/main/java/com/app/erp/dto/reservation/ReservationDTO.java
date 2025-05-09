@@ -1,8 +1,6 @@
-package com.app.erp.entity;
+package com.app.erp.dto.reservation;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDate;
 

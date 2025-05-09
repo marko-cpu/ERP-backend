@@ -1,12 +1,11 @@
 package com.app.erp.goods.service;
 
-import com.app.erp.entity.ReservationDTO;
-import com.app.erp.entity.Reservation;
+import com.app.erp.dto.reservation.ReservationDTO;
+import com.app.erp.entity.reservation.Reservation;
 import com.app.erp.goods.exceptions.ResourceNotFoundException;
 import com.app.erp.goods.repository.ReservationRepository;
 import com.app.erp.sales.service.OrderService;
 import com.app.erp.user.service.NotificationService;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

@@ -1,6 +1,6 @@
 package com.app.erp.user.controller;
 
-import com.app.erp.entity.NotificationDTO;
+import com.app.erp.dto.notification.NotificationDTO;
 import com.app.erp.security.UserDetails;
 import com.app.erp.user.service.NotificationService;
 import org.springframework.http.ResponseEntity;

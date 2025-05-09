@@ -1,4 +1,6 @@
-package com.app.erp.entity;
+package com.app.erp.dto.customer;
+
+import com.app.erp.entity.user.Role;
 
 import java.util.Date;
 import java.util.List;

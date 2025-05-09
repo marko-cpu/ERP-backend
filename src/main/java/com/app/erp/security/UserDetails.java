@@ -1,7 +1,7 @@
 package com.app.erp.security;
 
-import com.app.erp.entity.Role;
-import com.app.erp.entity.User;
+import com.app.erp.entity.user.Role;
+import com.app.erp.entity.user.User;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

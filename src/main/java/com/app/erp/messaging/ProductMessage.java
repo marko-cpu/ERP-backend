@@ -1,6 +1,6 @@
 package com.app.erp.messaging;
 
-import com.app.erp.entity.Product;
+import com.app.erp.entity.product.Product;
 
 import java.io.Serializable;
 import java.util.ArrayList;

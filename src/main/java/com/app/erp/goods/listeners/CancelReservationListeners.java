@@ -1,6 +1,6 @@
 package com.app.erp.goods.listeners;
 
-import com.app.erp.entity.Reservation;
+import com.app.erp.entity.reservation.Reservation;
 import com.app.erp.goods.repository.ReservationRepository;
 import com.app.erp.messaging.ReservationCancellationMessage;
 import com.app.erp.user.service.NotificationService;

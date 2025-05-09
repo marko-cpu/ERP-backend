@@ -1,7 +1,7 @@
 package com.app.erp.sales.repository;
 
 
-import com.app.erp.entity.Invoice;
+import com.app.erp.entity.invoice.Invoice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

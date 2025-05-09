@@ -1,7 +1,7 @@
 package com.app.erp.sales.service;
 
 
-import com.app.erp.entity.Accounting;
+import com.app.erp.entity.accounting.Accounting;
 import com.app.erp.sales.repository.AccountingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,8 +24,16 @@ public class AccountingService {
     //  public Page<Accounting> getAllAccountings(Pageable pageable) {
 //    return accountingRepository.findAllWithRelations(pageable);
 //}
-    public Page<Accounting> getAllAccountings(int page, int size) {
-        return accountingRepository.findAllWithRelations(PageRequest.of(page, size));
+//    public Page<Accounting> getAllAccountings(int page, int size) {
+//        return accountingRepository.findAllWithRelations(PageRequest.of(page, size));
+//    }
+
+    public Page<Accounting> getAllAccountings(int page, int size, Integer status) {
+        PageRequest pageable = PageRequest.of(page, size);
+        if (status != null) {
+            return accountingRepository.findByState(status, pageable);
+        }
+        return accountingRepository.findAllWithRelations(pageable);
     }
 
 

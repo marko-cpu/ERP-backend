@@ -1,13 +1,13 @@
-package com.app.erp.entity;
+package com.app.erp.entity.invoice;
 
 
+import com.app.erp.entity.accounting.Accounting;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Entity
 @Table(name = "invoices")

@@ -1,4 +1,4 @@
-package com.app.erp.entity;
+package com.app.erp.dto.customer;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

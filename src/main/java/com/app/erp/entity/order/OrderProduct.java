@@ -1,6 +1,7 @@
-package com.app.erp.entity;
+package com.app.erp.entity.order;
 
 
+import com.app.erp.entity.product.Product;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 

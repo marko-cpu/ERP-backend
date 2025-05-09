@@ -1,6 +1,8 @@
-package com.app.erp.entity;
+package com.app.erp.entity.order;
 
 
+import com.app.erp.entity.Customer;
+import com.app.erp.entity.user.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 

@@ -1,6 +1,6 @@
 package com.app.erp.sales.controller;
 
-import com.app.erp.entity.OrderProduct;
+import com.app.erp.entity.order.OrderProduct;
 import com.app.erp.sales.service.OrderProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

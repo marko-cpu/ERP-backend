@@ -1,4 +1,4 @@
-package com.app.erp.entity;
+package com.app.erp.dto.order;
 
 import java.util.ArrayList;
 import java.util.List;

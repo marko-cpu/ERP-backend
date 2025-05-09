@@ -1,6 +1,8 @@
-package com.app.erp.entity;
+package com.app.erp.entity.reservation;
 
 
+import com.app.erp.entity.order.Order;
+import com.app.erp.entity.product.Product;
 import jakarta.persistence.*;
 
 import java.io.Serializable;

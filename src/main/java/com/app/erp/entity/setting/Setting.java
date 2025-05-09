@@ -1,5 +1,6 @@
-package com.app.erp.entity;
+package com.app.erp.entity.setting;
 
+import com.app.erp.entity.SettingCategory;
 import jakarta.persistence.*;
 
 import java.util.Objects;

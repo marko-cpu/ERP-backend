@@ -1,7 +1,7 @@
 package com.app.erp.goods.repository;
 
 
-import com.app.erp.entity.Product;
+import com.app.erp.entity.product.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

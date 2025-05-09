@@ -1,7 +1,7 @@
 package com.app.erp.setting;
 
-import com.app.erp.entity.Setting;
-import com.app.erp.entity.SettingBag;
+import com.app.erp.entity.setting.Setting;
+import com.app.erp.entity.setting.SettingBag;
 
 import java.util.List;
 

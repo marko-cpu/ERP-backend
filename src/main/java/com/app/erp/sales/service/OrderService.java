@@ -2,6 +2,14 @@ package com.app.erp.sales.service;
 
 
 import com.app.erp.entity.*;
+import com.app.erp.entity.accounting.Accounting;
+import com.app.erp.entity.invoice.Invoice;
+import com.app.erp.entity.order.Order;
+import com.app.erp.entity.order.OrderProduct;
+import com.app.erp.dto.order.OrderRequest;
+import com.app.erp.entity.product.Product;
+import com.app.erp.entity.user.User;
+import com.app.erp.entity.warehouse.ArticleWarehouse;
 import com.app.erp.goods.repository.ArticleWarehouseRepository;
 import com.app.erp.goods.repository.ProductRepository;
 import com.app.erp.goods.repository.ReservationRepository;
@@ -12,7 +20,6 @@ import com.app.erp.messaging.SoldProductMessage;
 import com.app.erp.sales.repository.*;
 import com.app.erp.user.repository.UserRepository;
 import com.app.erp.user.service.NotificationService;
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;

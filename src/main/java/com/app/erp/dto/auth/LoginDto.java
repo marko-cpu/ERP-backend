@@ -1,4 +1,4 @@
-package com.app.erp.entity;
+package com.app.erp.dto.auth;
 
 
 public class LoginDto {

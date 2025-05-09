@@ -1,6 +1,6 @@
 package com.app.erp.user.service;
 
-import com.app.erp.entity.User;
+import com.app.erp.entity.user.User;
 import com.app.erp.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

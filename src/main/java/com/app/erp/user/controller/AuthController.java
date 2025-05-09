@@ -1,6 +1,7 @@
 package com.app.erp.user.controller;
 
-import com.app.erp.entity.*;
+import com.app.erp.entity.user.User;
+import com.app.erp.entity.user.UserInfo;
 import com.app.erp.security.JwtUtils;
 import com.app.erp.security.UserDetails;
 

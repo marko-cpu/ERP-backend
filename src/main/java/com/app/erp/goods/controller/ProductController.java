@@ -1,10 +1,10 @@
 package com.app.erp.goods.controller;
 
 
-import com.app.erp.entity.ArticleWarehouse;
+import com.app.erp.entity.warehouse.ArticleWarehouse;
 import com.app.erp.entity.Category;
-import com.app.erp.entity.Product;
-import com.app.erp.entity.Warehouse;
+import com.app.erp.entity.product.Product;
+import com.app.erp.entity.warehouse.Warehouse;
 import com.app.erp.goods.repository.ArticleWarehouseRepository;
 import com.app.erp.goods.repository.ProductRepository;
 import com.app.erp.goods.repository.WarehouseRepository;
@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,30 +65,31 @@ public class ProductController {
         Pageable pageable = PageRequest.of(page, size);
         return productService.getAllProducts(pageable);
     }
+
     @GetMapping("/products/all")
     public List<Product> getAllProductsWithoutPagination() {
-          return productService.getAllProductsWithoutPagination();
-       }
+        return productService.getAllProductsWithoutPagination();
+    }
 
     @PostMapping("/products/add")
     public Product addProduct(@RequestBody Product product) {
         return productService.addProduct(product);
     }
 
-@PutMapping("/products/update/{id}")
-public Product updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
-    Product product = productRepository.findById(id)
-        .orElseThrow(() -> new NoSuchElementException("Производ није пронађен"));
-    
-    product.setSku(productDetails.getSku());
-    product.setProductName(productDetails.getProductName());
-    product.setMeasureUnit(productDetails.getMeasureUnit());
-    product.setCategory(productDetails.getCategory());
-    product.setDescription(productDetails.getDescription());
-    product.setPrice(productDetails.getPrice());
-    
-    return productRepository.save(product);
-}
+    @PutMapping("/products/update/{id}")
+    public Product updateProduct(@PathVariable Long id, @RequestBody Product productDetails) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+
+        product.setSku(productDetails.getSku());
+        product.setProductName(productDetails.getProductName());
+        product.setMeasureUnit(productDetails.getMeasureUnit());
+        product.setCategory(productDetails.getCategory());
+        product.setDescription(productDetails.getDescription());
+        product.setPrice(productDetails.getPrice());
+
+        return productRepository.save(product);
+    }
 
 
     @PostMapping("/products/addToWarehouse")
@@ -136,27 +136,26 @@ public Product updateProduct(@PathVariable Long id, @RequestBody Product product
     }
 
 
-
     @GetMapping("/productData/{productId}")
     public ResponseEntity<String> getProductData(@PathVariable("productId") long productId) {
-        try{
+        try {
             return ResponseEntity.ok(productService.getProductData(productId));
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error getting product data: " + e.getMessage());
         }
     }
 
-        @DeleteMapping("/{id}")
-        public ResponseEntity<Void> deleteProductById(@PathVariable Long id) {
-            productService.deleteProductById(id);
-            return ResponseEntity.noContent().build();
-        }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProductById(@PathVariable Long id) {
+        productService.deleteProductById(id);
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping("/productState/{productId}")
     public ResponseEntity<String> getProductState(@PathVariable("productId") long productId) {
-        try{
+        try {
             return ResponseEntity.ok(productService.getProductState(productId));
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error getting product state: " + e.getMessage());
         }
     }

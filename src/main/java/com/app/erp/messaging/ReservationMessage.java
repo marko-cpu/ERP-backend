@@ -1,8 +1,8 @@
 package com.app.erp.messaging;
 
 
-import com.app.erp.entity.Accounting;
-import com.app.erp.entity.OrderProduct;
+import com.app.erp.entity.accounting.Accounting;
+import com.app.erp.entity.order.OrderProduct;
 
 import java.util.List;
 

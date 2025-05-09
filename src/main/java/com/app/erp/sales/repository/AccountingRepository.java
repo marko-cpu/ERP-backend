@@ -1,7 +1,7 @@
 package com.app.erp.sales.repository;
 
 
-import com.app.erp.entity.Accounting;
+import com.app.erp.entity.accounting.Accounting;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,7 +16,6 @@ import java.util.List;
 
 @Repository
 public interface AccountingRepository extends JpaRepository<Accounting, Long> {
-
 
 
     @Query("SELECT a FROM Accounting a WHERE a.state = 2")
@@ -40,6 +39,9 @@ public interface AccountingRepository extends JpaRepository<Accounting, Long> {
 
     @Query("SELECT a FROM Accounting a WHERE a.date<=:currentDate AND a.state=0")
     List<Accounting> deadlinePassed(@Param("currentDate") LocalDate currentDate);
+
+    @Query("SELECT a FROM Accounting a WHERE a.state = :state")
+    Page<Accounting> findByState(@Param("state") int state, Pageable pageable);
 
     void deleteByOrderId(Long orderId);
 }

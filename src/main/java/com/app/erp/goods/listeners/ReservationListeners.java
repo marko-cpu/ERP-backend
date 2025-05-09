@@ -1,9 +1,9 @@
 package com.app.erp.goods.listeners;
 
-import com.app.erp.entity.Accounting;
-import com.app.erp.entity.OrderProduct;
-import com.app.erp.entity.Product;
-import com.app.erp.entity.Reservation;
+import com.app.erp.entity.accounting.Accounting;
+import com.app.erp.entity.order.OrderProduct;
+import com.app.erp.entity.product.Product;
+import com.app.erp.entity.reservation.Reservation;
 import com.app.erp.goods.repository.ArticleWarehouseRepository;
 import com.app.erp.goods.repository.ReservationRepository;
 import com.app.erp.goods.repository.WarehouseRepository;

@@ -1,6 +1,6 @@
 package com.app.erp.goods.controller;
 
-import com.app.erp.entity.ReservationDTO;
+import com.app.erp.dto.reservation.ReservationDTO;
 import com.app.erp.goods.service.ReservationService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;

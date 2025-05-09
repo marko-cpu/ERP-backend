@@ -1,5 +1,6 @@
-package com.app.erp.entity;
+package com.app.erp.entity.notification;
 
+import com.app.erp.entity.user.User;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;

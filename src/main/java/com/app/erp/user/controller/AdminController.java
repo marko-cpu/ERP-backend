@@ -1,8 +1,8 @@
 package com.app.erp.user.controller;
 
-import com.app.erp.entity.Role;
-import com.app.erp.entity.User;
-import com.app.erp.entity.UserCustomerDTO;
+import com.app.erp.entity.user.Role;
+import com.app.erp.entity.user.User;
+import com.app.erp.dto.customer.UserCustomerDTO;
 import com.app.erp.user.UserNotFoundException;
 import com.app.erp.user.repository.AdminRepository;
 import com.app.erp.user.service.AdminService;
@@ -12,7 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

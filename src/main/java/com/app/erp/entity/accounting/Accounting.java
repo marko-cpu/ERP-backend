@@ -1,6 +1,7 @@
-package com.app.erp.entity;
+package com.app.erp.entity.accounting;
 
 
+import com.app.erp.entity.order.Order;
 import jakarta.persistence.*;
 
 import java.io.Serializable;

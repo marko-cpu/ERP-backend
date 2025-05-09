@@ -1,7 +1,7 @@
 package com.app.erp.messaging;
 
 
-import com.app.erp.entity.Accounting;
+import com.app.erp.entity.accounting.Accounting;
 
 public class ReservationResponseMessage {
 

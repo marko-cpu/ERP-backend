@@ -1,8 +1,8 @@
 package com.app.erp.user.controller;
 
-import com.app.erp.entity.Role;
-import com.app.erp.entity.User;
-import com.app.erp.entity.UserCustomerDTO;
+import com.app.erp.entity.user.Role;
+import com.app.erp.entity.user.User;
+import com.app.erp.dto.customer.UserCustomerDTO;
 import com.app.erp.user.service.AdminService;
 import com.app.erp.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

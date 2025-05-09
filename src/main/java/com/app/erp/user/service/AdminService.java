@@ -1,9 +1,9 @@
 package com.app.erp.user.service;
 
-import com.app.erp.entity.Role;
-import com.app.erp.entity.User;
-import com.app.erp.entity.UserCustomerDTO;
-import com.app.erp.entity.UserInfo;
+import com.app.erp.entity.user.Role;
+import com.app.erp.entity.user.User;
+import com.app.erp.dto.customer.UserCustomerDTO;
+import com.app.erp.entity.user.UserInfo;
 import com.app.erp.goods.repository.ProductRepository;
 import com.app.erp.sales.repository.OrderRepository;
 import com.app.erp.user.RoleRepository;

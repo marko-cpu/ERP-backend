@@ -2,11 +2,10 @@ package com.app.erp.sales.service;
 
 
 import com.app.erp.entity.Customer;
-import com.app.erp.entity.Invoice;
-import com.app.erp.entity.OrderProduct;
-import com.app.erp.entity.ProductsSoldStatsDTO;
+import com.app.erp.entity.invoice.Invoice;
+import com.app.erp.entity.order.OrderProduct;
+import com.app.erp.dto.order.ProductsSoldStatsDTO;
 import com.app.erp.sales.repository.InvoiceRepository;
-import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.color.DeviceRgb;
 
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -22,13 +21,11 @@ import com.itextpdf.layout.property.UnitValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
-import java.net.MalformedURLException;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
