@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 public class LoginRequest {
 
 	@NotBlank
-  private String email;
+  	private String email;
 
-  @NotBlank
-  private String password;
+  	@NotBlank
+  	private String password;
 
 	public String getEmail() {
 		return email;

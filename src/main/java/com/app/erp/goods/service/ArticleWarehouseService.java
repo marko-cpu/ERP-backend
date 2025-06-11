@@ -3,39 +3,38 @@ package com.app.erp.goods.service;
 
 import com.app.erp.entity.warehouse.ArticleWarehouse;
 import com.app.erp.entity.product.Product;
-import com.app.erp.entity.warehouse.Warehouse;
 import com.app.erp.goods.repository.ArticleWarehouseRepository;
 import com.app.erp.messaging.ProductMessage;
 import com.app.erp.user.service.NotificationService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.app.erp.config.RabbitMQConfig.PRODUCTS_TOPIC_EXCHANGE_NAME;
 
 @Service
 public class ArticleWarehouseService {
 
+    private final ArticleWarehouseRepository articleWarehouseRepository;
+    private final NotificationService notificationService;
+    private final RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    private ArticleWarehouseRepository articleWarehouseRepository;
+    @Value("${app.low-stock.threshold}")
+    private int lowStockThreshold;
 
-    @Autowired
-    private NotificationService notificationService;
+    public ArticleWarehouseService(ArticleWarehouseRepository articleWarehouseRepository,
+                                   NotificationService notificationService,
+                                   RabbitTemplate rabbitTemplate) {
+        this.articleWarehouseRepository = articleWarehouseRepository;
+        this.notificationService = notificationService;
+        this.rabbitTemplate = rabbitTemplate;
+    }
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
-
-    @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public ArticleWarehouse saveArticleWarehouse(ArticleWarehouse articleWarehouse) {
@@ -73,12 +72,14 @@ public class ArticleWarehouseService {
         ArticleWarehouse article = articleWarehouseRepository.findById(articleId)
                 .orElseThrow(() -> new RuntimeException("Article not found with id: " + articleId));
 
-        int oldQuantity = article.getQuantity();
-        Warehouse warehouse = article.getWarehouse();
+//        int oldQuantity = article.getQuantity();
+//        Warehouse warehouse = article.getWarehouse();
 
         article.setQuantity(quantity);
         article.setPurchasePrice(purchasePrice);
         articleWarehouseRepository.save(article);
+
+        checkAndNotifyLowStock(article);
 
         Product product = article.getProduct();
         List<Product> updatedProducts = Collections.singletonList(product);
@@ -94,10 +95,23 @@ public class ArticleWarehouseService {
                 "ARTICLE_UPDATED",
                 String.format("Updated article: Quantity: %d - %s - Purchase price: (€%.2f)",
                         quantity, product.getProductName(), purchasePrice),
-                List.of("ADMIN", "SALES_MANAGER")
+                List.of("SALES_MANAGER")
         );
 
+    }
 
+    public void checkAndNotifyLowStock(ArticleWarehouse article) {
+        if (article.getQuantity() < lowStockThreshold) {
+            Product product = article.getProduct();
+
+            ProductMessage lowStockMessage = ProductMessage.lowStockAlert(product);
+            rabbitTemplate.convertAndSend(
+                    PRODUCTS_TOPIC_EXCHANGE_NAME,
+                    "product.lowstock",
+                    lowStockMessage
+            );
+
+        }
     }
 
 //    @Transactional

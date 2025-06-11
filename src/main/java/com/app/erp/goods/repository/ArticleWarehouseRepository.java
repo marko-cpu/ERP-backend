@@ -4,6 +4,7 @@ package com.app.erp.goods.repository;
 
 import com.app.erp.entity.warehouse.ArticleWarehouse;
 import com.app.erp.entity.product.Product;
+import com.app.erp.entity.warehouse.Warehouse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,11 +19,6 @@ import java.util.Optional;
 @Repository
 public interface ArticleWarehouseRepository extends JpaRepository<ArticleWarehouse,Long> {
 
-@Query("SELECT aw FROM ArticleWarehouse aw WHERE aw.warehouse.id = :warehouseId")
-List<ArticleWarehouse> findByWarehouseId(@Param("warehouseId") Long warehouseId);
-
-    @Query("SELECT aw from ArticleWarehouse aw WHERE aw.product=:productId AND aw.purchasePrice=:purchasePrice")
-    Optional<ArticleWarehouse> findArticleWarehouse(@Param("productId") Product productId, @Param("purchasePrice") double purchasePrice);
 
     @Query("SELECT aw FROM ArticleWarehouse aw WHERE aw.product.id = :productId")
     List<ArticleWarehouse> findStateOfWarehousesForProductId(@Param("productId") Long productId);
@@ -41,7 +37,15 @@ List<ArticleWarehouse> findByWarehouseId(@Param("warehouseId") Long warehouseId)
     Page<ArticleWarehouse> findByWarehouseId(@Param("warehouseId") Long warehouseId, Pageable pageable);
 
     List<ArticleWarehouse> findByProductIdOrderByPurchasePriceAsc(Long productId);
-   
+
+    Optional<ArticleWarehouse> findByProductAndWarehouse(Product product, Warehouse warehouse);
+
+
+    //@Query("SELECT aw FROM ArticleWarehouse aw WHERE aw.warehouse.id = :warehouseId")
+    //List<ArticleWarehouse> findByWarehouseId(@Param("warehouseId") Long warehouseId);
+
+    //@Query("SELECT aw from ArticleWarehouse aw WHERE aw.product=:productId AND aw.purchasePrice=:purchasePrice")
+    //Optional<ArticleWarehouse> findArticleWarehouse(@Param("productId") Product productId, @Param("purchasePrice") double purchasePrice);
 
 
 }

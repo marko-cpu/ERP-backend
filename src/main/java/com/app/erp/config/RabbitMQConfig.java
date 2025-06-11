@@ -1,6 +1,7 @@
 package com.app.erp.config;
 
 import com.app.erp.goods.listeners.CancelReservationListeners;
+import com.app.erp.goods.listeners.LowStockListeners;
 import com.app.erp.goods.listeners.ReservationListeners;
 import com.app.erp.goods.listeners.SoldProductsListeners;
 import com.app.erp.sales.listeners.ProductEventListener;
@@ -21,7 +22,7 @@ public class RabbitMQConfig {
 
     public static final String PRODUCTS_TOPIC_EXCHANGE_NAME = "products-exchange";
     public static final String ORDERS_TOPIC_EXCHANGE_NAME = "orders-exchange";
-
+    public static final String LOW_STOCK_QUEUE = "low-stock-queue";
 
     @Bean
     TopicExchange productExchange() {
@@ -59,7 +60,10 @@ public class RabbitMQConfig {
     Queue cancelReservationQueue() {
         return new Queue(CANCEL_RESERVATION_QUEUE,  true, false, false);
     }
-
+    @Bean
+    Queue lowStockQueue() {
+        return new Queue(LOW_STOCK_QUEUE, true, false, false);
+    }
 
     // Bindings
     @Bean
@@ -83,6 +87,10 @@ public class RabbitMQConfig {
     @Bean
     Binding cancelReservationBinding(Queue cancelReservationQueue, TopicExchange ordersExchange) {
         return BindingBuilder.bind(cancelReservationQueue).to(ordersExchange).with("cancelreservation.*");
+    }// Binding
+    @Bean
+    Binding lowStockBinding(Queue lowStockQueue, TopicExchange productExchange) {
+        return BindingBuilder.bind(lowStockQueue).to(productExchange).with("product.lowstock");
     }
 
 
@@ -134,6 +142,15 @@ public class RabbitMQConfig {
         container.setMessageListener(cancelReservationListenerAdapter);
         return container;
     }
+    @Bean
+    SimpleMessageListenerContainer lowStockListenerContainer(ConnectionFactory connectionFactory,
+                                                             MessageListenerAdapter lowStockListenerAdapter) {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.setQueueNames(LOW_STOCK_QUEUE);
+        container.setMessageListener(lowStockListenerAdapter);
+        return container;
+    }
 
     // Converters for JSON
     @Bean
@@ -175,6 +192,13 @@ public class RabbitMQConfig {
     @Bean
     MessageListenerAdapter cancelReservationListenerAdapter(CancelReservationListeners cancelReservationListener, MessageConverter messageConverter) {
         MessageListenerAdapter adapter = new MessageListenerAdapter(cancelReservationListener, "cancelReservation");
+        adapter.setMessageConverter(messageConverter);
+        return adapter;
+    }
+    @Bean
+    MessageListenerAdapter lowStockListenerAdapter(LowStockListeners lowStockListener,
+                                                   MessageConverter messageConverter) {
+        MessageListenerAdapter adapter = new MessageListenerAdapter(lowStockListener, "handleLowStockEvent");
         adapter.setMessageConverter(messageConverter);
         return adapter;
     }

@@ -1,6 +1,5 @@
 package com.app.erp.user.payload.request;
 
-import java.util.Set;
 import jakarta.validation.constraints.*;
 
 public class SignupRequest {
@@ -40,9 +39,6 @@ public class SignupRequest {
 
 
   // Getteri i setteri
-
-
-
   public String getEmail() {
     return email;
   }

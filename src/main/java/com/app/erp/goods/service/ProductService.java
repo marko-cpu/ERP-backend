@@ -8,11 +8,9 @@ import com.app.erp.entity.warehouse.Warehouse;
 import com.app.erp.goods.repository.ArticleWarehouseRepository;
 import com.app.erp.goods.repository.ProductRepository;
 import com.app.erp.goods.repository.ReservationRepository;
-import com.app.erp.goods.repository.WarehouseRepository;
 import com.app.erp.messaging.ProductMessage;
 import com.app.erp.user.service.NotificationService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,23 +23,24 @@ import static com.app.erp.config.RabbitMQConfig.PRODUCTS_TOPIC_EXCHANGE_NAME;
 @Service
 public class ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final NotificationService notificationService;
+    private final RabbitTemplate rabbitTemplate;
+    private final ReservationRepository reservationRepository;
+    private final ArticleWarehouseRepository articleWarehouseRepository;
 
-    @Autowired
-    private NotificationService notificationService;
+    public ProductService(ProductRepository productRepository,
+                          NotificationService notificationService,
+                          RabbitTemplate rabbitTemplate,
+                          ReservationRepository reservationRepository,
+                          ArticleWarehouseRepository articleWarehouseRepository) {
+        this.productRepository = productRepository;
+        this.notificationService = notificationService;
+        this.rabbitTemplate = rabbitTemplate;
+        this.reservationRepository = reservationRepository;
+        this.articleWarehouseRepository = articleWarehouseRepository;
+    }
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
-
-    @Autowired
-    private WarehouseRepository warehouseRepository;
-
-    @Autowired
-    private ReservationRepository reservationRepository;
-
-    @Autowired
-    private ArticleWarehouseRepository articleWarehouseRepository;
 
     public Page<Product> getAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
@@ -57,7 +56,9 @@ public class ProductService {
 
     public Product addProduct(Product product) {
         product.setSku(generateSku());
-        productRepository.save(product);
+        //productRepository.save(product);
+        Product savedProduct = productRepository.save(product);
+
         ProductMessage productEventMessage = ProductMessage.createNewProduct(product);
         rabbitTemplate.convertAndSend(PRODUCTS_TOPIC_EXCHANGE_NAME,
                 "product.create", productEventMessage);
@@ -69,11 +70,12 @@ public class ProductService {
                 List.of("ADMIN", "SALES_MANAGER")
         );
 
-        return product;
+
+        return savedProduct;
     }
 
     public String generateSku() {
-        Long count = productRepository.count();
+        long count = productRepository.count();
         return "PROD-" + String.format("%03d", count + 1);
     }
 
@@ -83,7 +85,7 @@ public class ProductService {
 
         for (ArticleWarehouse article : articles) {
             article.setWarehouse(warehouse);
-            articleWarehouseRepository.save(article); // Ovaj poziv je dovoljan jer već čuva promene
+            articleWarehouseRepository.save(article);
         }
 
         // Notification for the warehouse
@@ -148,10 +150,7 @@ public class ProductService {
         return Arrays.asList(Category.values());
     }
 
-    //    @Transactional
-//    public void deleteProductById(Long id) {
-//        productRepository.deleteById(id);
-//    }
+
     @Transactional
     public void deleteProductById(Long id) {
         Product product = productRepository.findById(id)
@@ -164,6 +163,9 @@ public class ProductService {
                 "Deleted product: " + product.getProductName(),
                 List.of("ADMIN", "SALES_MANAGER")
         );
+
+
+
     }
 
 

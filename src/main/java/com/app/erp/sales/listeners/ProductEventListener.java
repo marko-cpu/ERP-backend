@@ -12,12 +12,6 @@ import java.util.List;
 @Component
 public class ProductEventListener implements Serializable {
 
-    private final NotificationService notificationService;
-
-    @Autowired
-    public ProductEventListener(NotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
 
     @RabbitListener(queues = "products-queue")
     public void processProductEvent(ProductMessage event) {

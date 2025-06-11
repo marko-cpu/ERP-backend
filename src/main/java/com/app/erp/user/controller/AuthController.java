@@ -8,7 +8,6 @@ import com.app.erp.security.UserDetails;
 import com.app.erp.setting.EmailSettingBag;
 import com.app.erp.setting.SettingService;
 import com.app.erp.setting.Utility;
-import com.app.erp.user.RoleRepository;
 import com.app.erp.user.payload.request.LoginRequest;
 import com.app.erp.user.payload.request.SignupRequest;
 import com.app.erp.user.payload.response.JwtResponse;
@@ -22,7 +21,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.Valid;
 import net.bytebuddy.utility.RandomString;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -31,6 +29,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -50,29 +49,32 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 @CrossOrigin("http://localhost:3000")
 public class AuthController {
-    @Autowired
-    AuthenticationManager authenticationManager;
 
-    @Autowired
-    UserRepository userRepository;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final UserInfoRepository userInfoRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final SettingService settingService;
+    private final JwtUtils jwtUtils;
 
-    @Autowired
-    RoleRepository roleRepository;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UserInfoRepository userInfoRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-
-    @Autowired private SettingService settingService;
-
-    @Autowired
-    JwtUtils jwtUtils;
+    public AuthController(
+            AuthenticationManager authenticationManager,
+            UserRepository userRepository,
+            UserService userService,
+            UserInfoRepository userInfoRepository,
+            PasswordEncoder passwordEncoder,
+            SettingService settingService,
+            JwtUtils jwtUtils
+    ) {
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.userService = userService;
+        this.userInfoRepository = userInfoRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.settingService = settingService;
+        this.jwtUtils = jwtUtils;
+    }
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -97,7 +99,7 @@ public class AuthController {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
+                .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(new JwtResponse(jwt,

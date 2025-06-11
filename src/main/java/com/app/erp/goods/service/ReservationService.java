@@ -13,14 +13,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
-    private final ProductService productService;
-    private final OrderService orderService;
     private final ModelMapper modelMapper;
     private final NotificationService notificationService;
 
@@ -28,14 +28,10 @@ public class ReservationService {
     @Autowired
     public ReservationService(
             ReservationRepository reservationRepository,
-            ProductService productService,
-            OrderService orderService,
             ModelMapper modelMapper,
             NotificationService notificationService
     ) {
         this.reservationRepository = reservationRepository;
-        this.productService = productService;
-        this.orderService = orderService;
         this.modelMapper = modelMapper;
         this.notificationService = notificationService;
     }
@@ -58,7 +54,6 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found"));
 
-        // Ажурирај само дозвољена поља
         reservation.setQuantity(reservationDTO.getQuantity());
         reservation.setStatus(reservationDTO.getStatus());
 
@@ -68,12 +63,11 @@ public class ReservationService {
 
     @Transactional
     public void deleteReservation(Long id) {
-        if (!reservationRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Reservation not found");
-        }
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found"));
+
         reservationRepository.deleteById(id);
 
-        // Notifikacija za uspešno otkazivanje
         notificationService.createAndSendNotification(
                 "RESERVATION_CANCELLED",
                 "Cancelled reservation with ID: " + id,

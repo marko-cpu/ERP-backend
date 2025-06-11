@@ -19,11 +19,13 @@ import java.util.stream.Collectors;
 @RestController
 public class UserRestController {
 
-    @Autowired
-    private AdminService service;
+    private final AdminService service;
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    public UserRestController(AdminService service, UserService userService) {
+        this.service = service;
+        this.userService = userService;
+    }
 
     @GetMapping("/users/id")
     public ResponseEntity<Integer> getUserIdByEmail(@Param("email") String email) {

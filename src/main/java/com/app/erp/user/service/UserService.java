@@ -2,7 +2,6 @@ package com.app.erp.user.service;
 
 import com.app.erp.entity.user.User;
 import com.app.erp.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,10 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
 
     public User getUserByEmail(String email) {
@@ -29,7 +29,6 @@ public class UserService {
         } else {
 
             userRepository.enable(user.getId());
-            //userRepository.save(user);
             return true;
         }
 

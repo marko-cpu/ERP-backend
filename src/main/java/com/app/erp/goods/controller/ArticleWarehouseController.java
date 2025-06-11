@@ -21,8 +21,11 @@ import java.util.Optional;
 @PreAuthorize("hasAnyAuthority('ADMIN', 'INVENTORY_MANAGER', 'SALES_MANAGER')")
 public class ArticleWarehouseController {
 
-    @Autowired
-    private ArticleWarehouseService articleWarehouseService;
+    private final ArticleWarehouseService articleWarehouseService;
+
+    public ArticleWarehouseController(ArticleWarehouseService articleWarehouseService) {
+        this.articleWarehouseService = articleWarehouseService;
+    }
 
 
     @PostMapping
@@ -91,6 +94,7 @@ public class ArticleWarehouseController {
             return new ResponseEntity<>("Failed to update article: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
 
 //        @PutMapping("/{productId}")

@@ -4,13 +4,10 @@ import com.app.erp.entity.user.Role;
 import com.app.erp.entity.user.User;
 import com.app.erp.dto.customer.UserCustomerDTO;
 import com.app.erp.entity.user.UserInfo;
-import com.app.erp.goods.repository.ProductRepository;
-import com.app.erp.sales.repository.OrderRepository;
 import com.app.erp.user.RoleRepository;
 import com.app.erp.user.UserNotFoundException;
 import com.app.erp.user.repository.AdminRepository;
 import com.app.erp.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,45 +22,21 @@ import java.util.stream.Collectors;
 @Transactional
 public class AdminService {
 
-    @Autowired
-    private UserRepository userRepo;
+    private final UserRepository userRepo;
+    private final RoleRepository roleRepo;
+    private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private RoleRepository roleRepo;
+    public AdminService(UserRepository userRepo,
+                        RoleRepository roleRepo,
+                        AdminRepository adminRepository,
+                        PasswordEncoder passwordEncoder) {
+        this.userRepo = userRepo;
+        this.roleRepo = roleRepo;
+        this.adminRepository = adminRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
-    @Autowired
-    private AdminRepository adminRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-//    public User updateUserRoles(Integer id, List<Role> roles) throws UserNotFoundException {
-//        User user = userRepo.findById(id)
-//                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-//
-//        // Obriši postojeće role i dodaj nove
-//        user.getRoles().clear();
-//        for (Role role : roles) {
-//            Role existingRole = roleRepo.findById(role.getId())
-//                    .orElseThrow(() -> new RuntimeException("Role not found: " + role.getName()));
-//            user.getRoles().add(existingRole);
-//        }
-//
-//        return userRepo.save(user);
-//    }
 
 public UserCustomerDTO getUserById(Integer id) throws UserNotFoundException {
     User user = userRepo.findById(id)
@@ -94,13 +67,13 @@ public UserCustomerDTO getUserById(Integer id) throws UserNotFoundException {
         User user = userRepo.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
-        // Ažuriraj osnovne podatke
+
         user.setFirstName(userDTO.getFirstName());
         user.setLastName(userDTO.getLastName());
         user.setEmail(userDTO.getEmail());
         user.setEnabled(userDTO.isEnabled());
 
-        // Ažuriraj role
+        // Update roles
         user.getRoles().clear();
         for (Role role : userDTO.getRoles()) {
             Role existingRole = roleRepo.findById(role.getId())
@@ -108,7 +81,7 @@ public UserCustomerDTO getUserById(Integer id) throws UserNotFoundException {
             user.getRoles().add(existingRole);
         }
 
-        // Ažuriraj customer podatke
+        // Update Customer data
         UserInfo customer = user.getCustomer();
         if (customer != null) {
             customer.setPhoneNumber(userDTO.getPhoneNumber());
@@ -125,7 +98,7 @@ public UserCustomerDTO getUserById(Integer id) throws UserNotFoundException {
     }
 
     public long getUserCount()  {
-        return userRepository.count();
+        return userRepo.count();
     }
     public User save(User user) {
         boolean isUpdatingUser = (user.getId() != null);
@@ -166,14 +139,12 @@ public UserCustomerDTO getUserById(Integer id) throws UserNotFoundException {
     private UserCustomerDTO convertToUserCustomerDTO(User user) {
         UserCustomerDTO dto = new UserCustomerDTO();
 
-        // Мапирање основних података
         dto.setUserId(user.getId());
         dto.setEmail(user.getEmail());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
         dto.setEnabled(user.isEnabled());
 
-        // Мапирање података о купцу (ако постоји)
         if (user.getCustomer() != null) {
             dto.setCustomerId(user.getCustomer().getId());
             dto.setAddress(user.getCustomer().getAddress());
@@ -183,7 +154,6 @@ public UserCustomerDTO getUserById(Integer id) throws UserNotFoundException {
             dto.setCreatedTime(user.getCustomer().getCreatedTime());
         }
 
-        // Мапирање улога
         List<Role> roles = user.getRoles().stream()
                 .map(role -> {
                     Role roleDTO = new Role();

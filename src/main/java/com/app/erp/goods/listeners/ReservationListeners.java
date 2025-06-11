@@ -24,16 +24,20 @@ import static com.app.erp.config.RabbitMQConfig.PRODUCTS_TOPIC_EXCHANGE_NAME;
 @Component
 public class ReservationListeners {
 
-    @Autowired
-    ReservationRepository reservationRepository;
-    @Autowired
-    WarehouseRepository warehouseRepository;
-    @Autowired
-    private ArticleWarehouseRepository articleWarehouseRepository;
-    @Autowired
-    RabbitTemplate rabbitTemplate;
-    @Autowired
-    private NotificationService notificationService;
+    private final ReservationRepository reservationRepository;
+    private final ArticleWarehouseRepository articleWarehouseRepository;
+    private final RabbitTemplate rabbitTemplate;
+    private final NotificationService notificationService;
+
+    public ReservationListeners(ReservationRepository reservationRepository,
+                                ArticleWarehouseRepository articleWarehouseRepository,
+                                RabbitTemplate rabbitTemplate,
+                                NotificationService notificationService) {
+        this.reservationRepository = reservationRepository;
+        this.articleWarehouseRepository = articleWarehouseRepository;
+        this.rabbitTemplate = rabbitTemplate;
+        this.notificationService = notificationService;
+    }
 
     @RabbitListener(queues = "reservation-queue")
     public void processReservation(ReservationMessage reservationMessage) {

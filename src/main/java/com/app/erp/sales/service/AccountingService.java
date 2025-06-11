@@ -21,13 +21,6 @@ public class AccountingService {
         this.accountingRepository = accountingRepository;
     }
 
-    //  public Page<Accounting> getAllAccountings(Pageable pageable) {
-//    return accountingRepository.findAllWithRelations(pageable);
-//}
-//    public Page<Accounting> getAllAccountings(int page, int size) {
-//        return accountingRepository.findAllWithRelations(PageRequest.of(page, size));
-//    }
-
     public Page<Accounting> getAllAccountings(int page, int size, Integer status) {
         PageRequest pageable = PageRequest.of(page, size);
         if (status != null) {
@@ -60,6 +53,8 @@ public class AccountingService {
         existing.setDate(updatedAccounting.getDate());
         existing.setTotalPrice(updatedAccounting.getTotalPrice());
         existing.setState(updatedAccounting.getState());
+
+
 
         return accountingRepository.save(existing);
     }

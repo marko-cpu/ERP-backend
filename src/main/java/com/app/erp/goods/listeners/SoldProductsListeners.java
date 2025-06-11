@@ -6,6 +6,7 @@ import com.app.erp.entity.reservation.Reservation;
 import com.app.erp.goods.repository.ArticleWarehouseRepository;
 import com.app.erp.goods.repository.ReservationRepository;
 import com.app.erp.goods.repository.WarehouseRepository;
+import com.app.erp.goods.service.ArticleWarehouseService;
 import com.app.erp.messaging.SoldProductMessage;
 import com.app.erp.sales.repository.OrderProductRepository;
 import com.app.erp.user.service.NotificationService;
@@ -18,16 +19,23 @@ import java.util.List;
 @Component
 public class SoldProductsListeners {
 
-    @Autowired
-    OrderProductRepository orderProductRepository;
-    @Autowired
-    ReservationRepository reservationRepository;
-    @Autowired
-    WarehouseRepository warehouseRepository;
-    @Autowired
-    private ArticleWarehouseRepository articleWarehouseRepository;
-    @Autowired
-    private NotificationService notificationService;
+    private final OrderProductRepository orderProductRepository;
+    private final ReservationRepository reservationRepository;
+    private final ArticleWarehouseRepository articleWarehouseRepository;
+    private final NotificationService notificationService;
+    private final ArticleWarehouseService articleWarehouseService;
+
+    public SoldProductsListeners(OrderProductRepository orderProductRepository,
+                                 ReservationRepository reservationRepository,
+                                 ArticleWarehouseRepository articleWarehouseRepository,
+                                 NotificationService notificationService,
+                                 ArticleWarehouseService articleWarehouseService) {
+        this.orderProductRepository = orderProductRepository;
+        this.reservationRepository = reservationRepository;
+        this.articleWarehouseRepository = articleWarehouseRepository;
+        this.notificationService = notificationService;
+        this.articleWarehouseService = articleWarehouseService;
+    }
 
     @RabbitListener(queues = "sold-products-queue")
     public void processSoldProductsMessage(SoldProductMessage soldProductMessage) {
@@ -44,15 +52,14 @@ public class SoldProductsListeners {
 
             // Delete all reservations for the order
             List<Reservation> reservations = reservationRepository.findByOrderId(orderId);
-            reservations.forEach(reservation -> reservationRepository.delete(reservation));
+            reservations.forEach(reservation ->
+                    reservationRepository.delete(reservation));
 
             notificationService.createAndSendNotification(
                     "PRODUCTS_SOLD",
                     "Successfully processed sales for order: " + orderId,
                     List.of("INVENTORY_MANAGER", "SALES_MANAGER")
             );
-
-          //  System.out.println(sb.toString());
 
         } catch (Exception e) {
             notificationService.createAndSendNotification(
@@ -92,6 +99,8 @@ public class SoldProductsListeners {
             sb.append("\n - Warehouse ID: ").append(warehouse.getWarehouse().getId())
                     .append(", Deducted: ").append(deducted)
                     .append(", Remaining: ").append(warehouse.getQuantity());
+
+            articleWarehouseService.checkAndNotifyLowStock(warehouse);
         }
 
         if (quantityNeeded > 0) {

@@ -13,11 +13,13 @@ import java.util.List;
 @Component
 public class CancelReservationListeners {
 
-    @Autowired
-    ReservationRepository reservationRepository;
+    private final ReservationRepository reservationRepository;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private NotificationService notificationService;
+    public CancelReservationListeners(ReservationRepository reservationRepository, NotificationService notificationService) {
+        this.reservationRepository = reservationRepository;
+        this.notificationService = notificationService;
+    }
 
 
     @RabbitListener(queues = "cancel-reservation-queue")

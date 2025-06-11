@@ -26,21 +26,23 @@ import java.util.*;
 @PreAuthorize("hasAnyAuthority('ADMIN', 'INVENTORY_MANAGER','ACCOUNTANT', 'SALES_MANAGER')")
 public class ProductController {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final ProductService productService;
+    private final ArticleWarehouseService articleWarehouseService;
+    private final ArticleWarehouseRepository articleWarehouseRepository;
+    private final WarehouseRepository warehouseRepository;
 
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private ArticleWarehouseService articleWarehouseService;
-
-    @Autowired
-    private ArticleWarehouseRepository articleWarehouseRepository;
-
-    @Autowired
-    private WarehouseRepository warehouseRepository;
-
+    public ProductController(ProductRepository productRepository,
+                             ProductService productService,
+                             ArticleWarehouseService articleWarehouseService,
+                             ArticleWarehouseRepository articleWarehouseRepository,
+                             WarehouseRepository warehouseRepository) {
+        this.productRepository = productRepository;
+        this.productService = productService;
+        this.articleWarehouseService = articleWarehouseService;
+        this.articleWarehouseRepository = articleWarehouseRepository;
+        this.warehouseRepository = warehouseRepository;
+    }
 
     @GetMapping("/category-stats")
     public Map<String, Integer> getProductCategoryStats() {
@@ -99,7 +101,7 @@ public class ProductController {
             String location = (String) requestBody.get("location");
             List<Map<String, Object>> articleList = (List<Map<String, Object>>) requestBody.get("articles");
 
-            // Pronađi ili kreiraj skladište
+            // Find or create warehouse
             Warehouse warehouse = warehouseRepository.findByWarehouseNameAndLocation(warehouseName, location)
                     .orElseGet(() -> warehouseRepository.save(new Warehouse(warehouseName, location)));
 
@@ -115,13 +117,27 @@ public class ProductController {
                 double purchasePrice = ((Number) articleMap.get("purchasePrice")).doubleValue();
                 int quantity = ((Number) articleMap.get("quantity")).intValue();
 
-                // Pronađi ili kreiraj ArticleWarehouse
-                ArticleWarehouse articleWarehouse = articleWarehouseRepository
-                        .findArticleWarehouse(product, purchasePrice)
-                        .orElse(new ArticleWarehouse(product, purchasePrice, 0));
+                // Find ArticleWarehouse by product and warehouse only (ignore price)
+                Optional<ArticleWarehouse> optionalArticleWarehouse = articleWarehouseRepository
+                        .findByProductAndWarehouse(product, warehouse);
 
-                articleWarehouse.setQuantity(articleWarehouse.getQuantity() + quantity);
-                articleWarehouse.setWarehouse(warehouse);
+                ArticleWarehouse articleWarehouse;
+
+                if (optionalArticleWarehouse.isPresent()) {
+                    articleWarehouse = optionalArticleWarehouse.get();
+
+                    // If price differs, update it
+                    if (Double.compare(articleWarehouse.getPurchasePrice(), purchasePrice) != 0) {
+                        articleWarehouse.setPurchasePrice(purchasePrice);
+                    }
+
+                    // Add quantity
+                    articleWarehouse.setQuantity(articleWarehouse.getQuantity() + quantity);
+                } else {
+                    // Create new ArticleWarehouse
+                    articleWarehouse = new ArticleWarehouse(product, purchasePrice, quantity);
+                    articleWarehouse.setWarehouse(warehouse);
+                }
 
                 articleWarehouseRepository.save(articleWarehouse);
                 articles.add(articleWarehouse);

@@ -9,10 +9,9 @@ import java.util.List;
 public class ProductMessage implements Serializable {
 
     private ProductEventType type = ProductEventType.NONE;
-    private List<Product> productList = new ArrayList<>(); // Initialize with empty list
+    private List<Product> productList = new ArrayList<>();
     private Product product;
 
-    // Constructors
     public ProductMessage() {
         this.productList = new ArrayList<>();
     }
@@ -49,11 +48,15 @@ public class ProductMessage implements Serializable {
         );
     }
 
-    public static ProductMessage updatePriceOfProduct(List<Product> updatedProducts) {
-        return new ProductMessage(
-                ProductEventType.UPDATE_PRODUCT_PRICE,
-                (updatedProducts != null) ? updatedProducts : new ArrayList<>()
-        );
+//    public static ProductMessage updatePriceOfProduct(List<Product> updatedProducts) {
+//        return new ProductMessage(
+//                ProductEventType.UPDATE_PRODUCT_PRICE,
+//                (updatedProducts != null) ? updatedProducts : new ArrayList<>()
+//        );
+//    }
+
+    public static ProductMessage lowStockAlert(Product product) {
+        return new ProductMessage(ProductEventType.LOW_STOCK, product);
     }
 
     // toString() with null safety

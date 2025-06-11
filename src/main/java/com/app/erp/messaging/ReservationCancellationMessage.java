@@ -4,8 +4,7 @@ public class ReservationCancellationMessage {
 
     private long orderId;
 
-    public ReservationCancellationMessage() {
-    }
+    public ReservationCancellationMessage() {}
 
     public ReservationCancellationMessage(long orderId) {
         this.orderId = orderId;

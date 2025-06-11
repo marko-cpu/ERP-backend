@@ -19,9 +19,6 @@ public interface UserRepository extends CrudRepository<User, Integer>{
 
     User findByEmail(String email);
 
-    @Query("SELECT u FROM User u JOIN FETCH u.customer")
-    List<User> findAllUsersWithCustomers();
-
     @Query(value = "SELECT u FROM User u LEFT JOIN FETCH u.customer",
             countQuery = "SELECT COUNT(u) FROM User u")
     Page<User> findAllWithCustomer(Pageable pageable);
@@ -32,7 +29,6 @@ public interface UserRepository extends CrudRepository<User, Integer>{
 
     @Query("SELECT c FROM User c WHERE c.verificationCode = ?1")
     public User findByVerificationCode(String code);
-
 
     @Modifying()
     @Query("UPDATE User c SET c.verificationCode = null WHERE c.id = ?1")

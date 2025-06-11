@@ -45,6 +45,8 @@ public class InvoiceService {
         this.invoiceRepository = invoiceRepository;
     }
 
+
+
     public Page<Invoice> getAllInvoices(Pageable pageable) {
         return invoiceRepository.findAll(pageable);
     }
@@ -66,7 +68,7 @@ public class InvoiceService {
             invoice.setPayDate(updatedInvoice.getPayDate());
             return invoiceRepository.save(invoice);
         }
-        return null; // Or throw an exception
+        return null;
     }
 
     public void deleteInvoice(Long id) {
@@ -82,7 +84,7 @@ public class InvoiceService {
         List<Invoice> invoices = invoiceRepository.findAllWithOrderProducts();
         Map<String, Integer> monthlySales = new LinkedHashMap<>();
 
-        // Inicialization of monthlySales
+        // Initialization of monthly-Sales
         LocalDate now = LocalDate.now();
         Year currentYear = Year.now();
         for (int i = 1; i <= 12; i++) {
@@ -106,7 +108,6 @@ public class InvoiceService {
             }
         }
 
-        // Sortiranje mjeseci po hronologiji
         List<String> sortedMonths = Arrays.asList("Jan", "Feb", "Mar", "Apr", "May", "Jun",
                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
 
@@ -236,6 +237,7 @@ public class InvoiceService {
         } catch (Exception e) {
             throw new RuntimeException("Error generating PDF", e);
         }
+
     }
 
 // --- Helper Methods ---

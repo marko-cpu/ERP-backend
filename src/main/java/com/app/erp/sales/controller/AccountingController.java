@@ -23,20 +23,6 @@ public class AccountingController {
         this.accountingService = accountingService;
     }
 
-    //   @GetMapping
-//    public Page<Accounting> getAllAccountings(
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "5") int size) {
-//             Pageable pageable = PageRequest.of(page, size);
-//    return accountingService.getAllAccountings(pageable);
-//}
-//    @GetMapping
-//    public Page<Accounting> getAllAccountings(
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "5") int size
-//    ) {
-//        return accountingService.getAllAccountings(page, size);
-//    }
 
     @GetMapping
     public Page<Accounting> getAllAccountings(

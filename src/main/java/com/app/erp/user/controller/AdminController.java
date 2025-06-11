@@ -4,9 +4,7 @@ import com.app.erp.entity.user.Role;
 import com.app.erp.entity.user.User;
 import com.app.erp.dto.customer.UserCustomerDTO;
 import com.app.erp.user.UserNotFoundException;
-import com.app.erp.user.repository.AdminRepository;
 import com.app.erp.user.service.AdminService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -21,24 +19,13 @@ import java.util.List;
 @PreAuthorize("hasAuthority('ADMIN')")
 public class AdminController {
 
-    @Autowired
-    private AdminService adminService;
+    private final AdminService adminService;
 
-    @Autowired
-    private AdminService service;
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
 
-    @Autowired
-    private AdminRepository adminRepository;
 
-//    @PutMapping("/users/{id}/roles")
-//    public ResponseEntity<?> updateUserRoles(@PathVariable Integer id, @RequestBody List<Role> roles) {
-//        try {
-//            User updatedUser = adminService.updateUserRoles(id, roles);
-//            return ResponseEntity.ok(updatedUser);
-//        } catch (UserNotFoundException e) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-//        }
-//    }
     @PutMapping("/users/{id}")
     public ResponseEntity<?> updateUser(
             @PathVariable Integer id,

@@ -14,9 +14,11 @@ import java.util.Optional;
 @Service
 public class WarehouseService {
 
-    @Autowired
-    private WarehouseRepository warehouseRepository;
+    private final WarehouseRepository warehouseRepository;
 
+    public WarehouseService(WarehouseRepository warehouseRepository) {
+        this.warehouseRepository = warehouseRepository;
+    }
 
     public Page<Warehouse> getAllWarehouses(Pageable pageable) {
         return warehouseRepository.findAll(pageable);

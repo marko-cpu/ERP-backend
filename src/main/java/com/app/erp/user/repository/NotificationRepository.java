@@ -11,9 +11,6 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-   // List<Notification> findByRecipientRolesIn(List<String> roles);
-
-
     @Query("SELECT DISTINCT n FROM Notification n WHERE EXISTS (SELECT r FROM n.recipientRoles r WHERE r IN :roles)")
     List<Notification> findByRecipientRolesIn(@Param("roles") List<String> roles);
 

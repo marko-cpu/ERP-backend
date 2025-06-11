@@ -4,7 +4,6 @@ import com.app.erp.entity.Customer;
 import com.app.erp.entity.order.Order;
 import com.app.erp.dto.order.OrderRequest;
 import com.app.erp.sales.service.OrderService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,8 +21,11 @@ import java.util.Optional;
 @PreAuthorize("hasAnyAuthority('ADMIN', 'SALES_MANAGER','ACCOUNTANT')")
 public class OrderController {
 
-    @Autowired
-    private OrderService orderService;
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     @GetMapping("/customers")
     public List<Customer> getAllCustomers() {
@@ -95,6 +97,7 @@ public class OrderController {
             long accountingId = accountingIdNumber.longValue();
 
             orderService.addInvoice(accountingId, totalPrice);
+
             return ResponseEntity.ok("Invoice added");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

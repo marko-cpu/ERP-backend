@@ -18,8 +18,11 @@ import java.util.Optional;
 @PreAuthorize("hasAnyAuthority('ADMIN', 'INVENTORY_MANAGER', 'SALES_MANAGER')")
 public class WarehouseController {
 
-    @Autowired
-    private WarehouseService warehouseService;
+    private final WarehouseService warehouseService;
+
+    public WarehouseController(WarehouseService warehouseService) {
+        this.warehouseService = warehouseService;
+    }
 
     @GetMapping("getAllWarehouses")
     public Page<Warehouse> getAllWarehouses(@RequestParam(defaultValue = "0") int page,

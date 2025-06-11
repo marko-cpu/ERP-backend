@@ -13,7 +13,6 @@ import com.app.erp.entity.warehouse.ArticleWarehouse;
 import com.app.erp.goods.repository.ArticleWarehouseRepository;
 import com.app.erp.goods.repository.ProductRepository;
 import com.app.erp.goods.repository.ReservationRepository;
-import com.app.erp.goods.repository.WarehouseRepository;
 import com.app.erp.messaging.ReservationCancellationMessage;
 import com.app.erp.messaging.ReservationMessage;
 import com.app.erp.messaging.SoldProductMessage;
@@ -25,7 +24,6 @@ import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -41,46 +39,48 @@ import static com.app.erp.config.RabbitMQConfig.ORDERS_TOPIC_EXCHANGE_NAME;
 @Service
 public class OrderService {
 
+    private final RabbitTemplate rabbitTemplate;
+    private final OrderProductRepository orderProductRepository;
+    private final OrderRepository orderRepository;
+    private final ArticleWarehouseRepository articleWarehouseRepository;
+    private final AccountingRepository accountingRepository;
+    private final ReservationRepository reservationRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
-    @Autowired
-    RabbitTemplate rabbitTemplate;
-
-    @Autowired
-    OrderProductRepository orderProductRepository;
-
-    @Autowired
-    OrderRepository orderRepository;
-
-    @Autowired
-    WarehouseRepository warehouseRepository;
-
-    @Autowired
-    ArticleWarehouseRepository articleWarehouseRepository;
-
-    @Autowired
-    private AccountingRepository accountingRepository;
-
-    @Autowired
-    private ReservationRepository reservationRepository;
-
-    @Autowired
-    private InvoiceRepository invoiceRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private CustomerRepository customerRepository;
-
-    @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
-    private UserRepository userRepository;
     @PersistenceContext
     private EntityManager entityManager;
 
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+
+    public OrderService(
+            RabbitTemplate rabbitTemplate,
+            OrderProductRepository orderProductRepository,
+            OrderRepository orderRepository,
+            ArticleWarehouseRepository articleWarehouseRepository,
+            AccountingRepository accountingRepository,
+            ReservationRepository reservationRepository,
+            InvoiceRepository invoiceRepository,
+            ProductRepository productRepository,
+            CustomerRepository customerRepository,
+            NotificationService notificationService,
+            UserRepository userRepository
+    ) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.orderProductRepository = orderProductRepository;
+        this.orderRepository = orderRepository;
+        this.articleWarehouseRepository = articleWarehouseRepository;
+        this.accountingRepository = accountingRepository;
+        this.reservationRepository = reservationRepository;
+        this.invoiceRepository = invoiceRepository;
+        this.productRepository = productRepository;
+        this.customerRepository = customerRepository;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
+    }
 
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
@@ -208,6 +208,8 @@ public class OrderService {
             totalPrice += orderProduct.getTotalPrice();
         }
 
+
+
         // Notification for new order
         notificationService.createAndSendNotification(
                 "ORDER_CREATED",
@@ -258,7 +260,8 @@ public class OrderService {
     public Invoice addInvoice(long accountingId, double totalPrice) throws Exception {
         Optional<Accounting> accountingOptional = accountingRepository.findById(accountingId);
         try {
-            Accounting accounting = accountingOptional.orElseThrow(() -> new Exception("Accounting id does not exist!"));
+            Accounting accounting = accountingOptional.orElseThrow(() ->
+                    new Exception("Accounting id does not exist!"));
 
             if (accounting.getState() == 1) {
                 throw new Exception("Order is already paid!");
@@ -277,6 +280,7 @@ public class OrderService {
             LocalDate payDate = LocalDate.now();
             Invoice invoice = new Invoice(accounting, totalPrice, payDate);
             invoiceRepository.save(invoice);
+
 
             // Notification for new invoice
             notificationService.createAndSendNotification(
@@ -362,6 +366,8 @@ public class OrderService {
     public void deleteOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+
+
 
 //        // Provera da li postoji faktura
 //        if (order.getAccounting() != null && order.getAccounting().getInvoice() != null) {
