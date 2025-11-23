@@ -1,6 +1,9 @@
 package com.app.erp.goods.service;
 
+import com.app.erp.audit.AuditService;
 import com.app.erp.dto.reservation.ReservationDTO;
+import com.app.erp.entity.order.Order;
+import com.app.erp.entity.product.Product;
 import com.app.erp.entity.reservation.Reservation;
 import com.app.erp.goods.exceptions.ResourceNotFoundException;
 import com.app.erp.goods.repository.ReservationRepository;
@@ -23,17 +26,18 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final ModelMapper modelMapper;
     private final NotificationService notificationService;
-
+    private final AuditService auditService;
 
     @Autowired
     public ReservationService(
             ReservationRepository reservationRepository,
             ModelMapper modelMapper,
-            NotificationService notificationService
+            NotificationService notificationService, AuditService auditService
     ) {
         this.reservationRepository = reservationRepository;
         this.modelMapper = modelMapper;
         this.notificationService = notificationService;
+        this.auditService = auditService;
     }
 
     public Page<ReservationDTO> getAllReservations(int page, int size) {
@@ -54,11 +58,31 @@ public class ReservationService {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation not found"));
 
+        int oldQuantity = reservation.getQuantity();
+        String oldStatus = reservation.getStatus();
+        Product product = reservation.getProduct();
+        Order order = reservation.getOrder();
+
         reservation.setQuantity(reservationDTO.getQuantity());
         reservation.setStatus(reservationDTO.getStatus());
 
         Reservation updatedReservation = reservationRepository.save(reservation);
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("productId", product.getId());
+        details.put("productName", product.getProductName());
+        details.put("orderId", order.getId());
+        details.put("oldQuantity", oldQuantity);
+        details.put("newQuantity", reservationDTO.getQuantity());
+        details.put("quantityDelta", reservationDTO.getQuantity() - oldQuantity);
+        details.put("oldStatus", oldStatus);
+        details.put("newStatus", reservationDTO.getStatus());
+
+        auditService.logEvent("RESERVATION_UPDATE", "RESERVATION", id, details);
+
         return convertToDTO(updatedReservation);
+
+
     }
 
     @Transactional

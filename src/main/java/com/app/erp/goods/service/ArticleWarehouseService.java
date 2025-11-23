@@ -1,6 +1,7 @@
 package com.app.erp.goods.service;
 
 
+import com.app.erp.audit.AuditService;
 import com.app.erp.entity.warehouse.ArticleWarehouse;
 import com.app.erp.entity.product.Product;
 import com.app.erp.goods.repository.ArticleWarehouseRepository;
@@ -23,16 +24,18 @@ public class ArticleWarehouseService {
     private final ArticleWarehouseRepository articleWarehouseRepository;
     private final NotificationService notificationService;
     private final RabbitTemplate rabbitTemplate;
+    private final AuditService auditService;
 
     @Value("${app.low-stock.threshold}")
     private int lowStockThreshold;
 
     public ArticleWarehouseService(ArticleWarehouseRepository articleWarehouseRepository,
                                    NotificationService notificationService,
-                                   RabbitTemplate rabbitTemplate) {
+                                   RabbitTemplate rabbitTemplate, AuditService auditService) {
         this.articleWarehouseRepository = articleWarehouseRepository;
         this.notificationService = notificationService;
         this.rabbitTemplate = rabbitTemplate;
+        this.auditService = auditService;
     }
 
 
@@ -72,8 +75,8 @@ public class ArticleWarehouseService {
         ArticleWarehouse article = articleWarehouseRepository.findById(articleId)
                 .orElseThrow(() -> new RuntimeException("Article not found with id: " + articleId));
 
-//        int oldQuantity = article.getQuantity();
-//        Warehouse warehouse = article.getWarehouse();
+        int oldQuantity = article.getQuantity();
+        double oldPurchasePrice = article.getPurchasePrice();
 
         article.setQuantity(quantity);
         article.setPurchasePrice(purchasePrice);
@@ -96,6 +99,23 @@ public class ArticleWarehouseService {
                 String.format("Updated article: Quantity: %d - %s - Purchase price: (€%.2f)",
                         quantity, product.getProductName(), purchasePrice),
                 List.of("SALES_MANAGER")
+        );
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("productId", article.getProduct().getId());
+        details.put("productName", article.getProduct().getProductName());
+        details.put("warehouseId", article.getWarehouse().getId());
+        details.put("warehouseName", article.getWarehouse().getWarehouseName());
+        details.put("oldQuantity", oldQuantity);
+        details.put("newQuantity", quantity);
+        details.put("oldPurchasePrice", oldPurchasePrice);
+        details.put("newPurchasePrice", purchasePrice);
+
+        auditService.logEvent(
+                "ARTICLE_WAREHOUSE_UPDATE",
+                "ARTICLE_WAREHOUSE",
+                articleId,
+                details
         );
 
     }

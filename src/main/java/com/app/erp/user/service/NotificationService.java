@@ -154,7 +154,24 @@
                 userNotificationRepository.save(userNotification);
             }
         }
-    
+
+        @Transactional
+        public void deleteAllNotifications(UserDetails userDetails) {
+            User user = userRepository.findByEmail(userDetails.getUsername());
+
+            // Pronađi sve notifikacije koje je ovaj korisnik dobio
+            List<UserNotification> userNotifications = userNotificationRepository.findByUser(user);
+
+            // Označi ih kao obrisane (ne briši fizički!)
+            for (UserNotification un : userNotifications) {
+                if (!un.isDeleted()) {
+                    un.setDeleted(true);
+                    userNotificationRepository.save(un);
+                }
+            }
+        }
+
+
         private UserNotification createUserNotification(User user, Notification notification, boolean deleted) {
             UserNotification un = new UserNotification();
             un.setUser(user);

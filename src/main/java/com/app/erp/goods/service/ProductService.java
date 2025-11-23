@@ -1,6 +1,7 @@
 package com.app.erp.goods.service;
 
 
+import com.app.erp.audit.AuditService;
 import com.app.erp.entity.*;
 import com.app.erp.entity.product.Product;
 import com.app.erp.entity.warehouse.ArticleWarehouse;
@@ -28,17 +29,19 @@ public class ProductService {
     private final RabbitTemplate rabbitTemplate;
     private final ReservationRepository reservationRepository;
     private final ArticleWarehouseRepository articleWarehouseRepository;
+    private final AuditService auditService;
 
     public ProductService(ProductRepository productRepository,
                           NotificationService notificationService,
                           RabbitTemplate rabbitTemplate,
                           ReservationRepository reservationRepository,
-                          ArticleWarehouseRepository articleWarehouseRepository) {
+                          ArticleWarehouseRepository articleWarehouseRepository, AuditService auditService) {
         this.productRepository = productRepository;
         this.notificationService = notificationService;
         this.rabbitTemplate = rabbitTemplate;
         this.reservationRepository = reservationRepository;
         this.articleWarehouseRepository = articleWarehouseRepository;
+        this.auditService = auditService;
     }
 
 
@@ -69,6 +72,16 @@ public class ProductService {
                 "New Product Created: " + product.getProductName() + " (SKU: " + product.getSku() + ")",
                 List.of("ADMIN", "SALES_MANAGER")
         );
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("productName", savedProduct.getProductName());
+        details.put("sku", savedProduct.getSku());
+        details.put("category", savedProduct.getCategory().name());
+        details.put("price", savedProduct.getPrice());
+        details.put("measureUnit", savedProduct.getMeasureUnit());
+        details.put("description", savedProduct.getDescription());
+
+        auditService.logEvent("PRODUCT_CREATE", "PRODUCT", savedProduct.getId(), details);
 
 
         return savedProduct;
@@ -163,6 +176,13 @@ public class ProductService {
                 "Deleted product: " + product.getProductName(),
                 List.of("ADMIN", "SALES_MANAGER")
         );
+
+        Map<String, Object> details = new HashMap<>();
+        details.put("productName", product.getProductName());
+        details.put("sku", product.getSku());
+        details.put("lastCategory", product.getCategory().name());
+
+        auditService.logEvent("PRODUCT_DELETE", "PRODUCT", id, details);
 
 
 

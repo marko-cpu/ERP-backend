@@ -1,6 +1,7 @@
 package com.app.erp.sales.service;
 
 
+import com.app.erp.audit.AuditService;
 import com.app.erp.entity.*;
 import com.app.erp.entity.accounting.Accounting;
 import com.app.erp.entity.invoice.Invoice;
@@ -31,8 +32,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.app.erp.config.RabbitMQConfig.ORDERS_TOPIC_EXCHANGE_NAME;
 
@@ -50,6 +54,8 @@ public class OrderService {
     private final CustomerRepository customerRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final AuditService auditService;
+    private final OrderProductService orderProductService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -67,8 +73,8 @@ public class OrderService {
             ProductRepository productRepository,
             CustomerRepository customerRepository,
             NotificationService notificationService,
-            UserRepository userRepository
-    ) {
+            UserRepository userRepository, AuditService auditService,
+            OrderProductService orderProductService) {
         this.rabbitTemplate = rabbitTemplate;
         this.orderProductRepository = orderProductRepository;
         this.orderRepository = orderRepository;
@@ -80,6 +86,8 @@ public class OrderService {
         this.customerRepository = customerRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
+        this.auditService = auditService;
+        this.orderProductService = orderProductService;
     }
 
     public List<Customer> getAllCustomers() {
@@ -170,6 +178,7 @@ public class OrderService {
 
         this.orderRepository.save(order);
 
+
         double totalPrice = 0.0;
         LocalDate dateOfPayment = LocalDate.now().plusDays(5);
         List<OrderProduct> productList = order.getProductList();
@@ -232,6 +241,31 @@ public class OrderService {
         rabbitTemplate.convertAndSend(ORDERS_TOPIC_EXCHANGE_NAME, "reservation.queue", reservationMessage);
 
 
+        Map<String, Object> orderDetails = new HashMap<>();
+        orderDetails.put("customerId", customer.getId());
+        orderDetails.put("customerName", customer.getFirstName() + " " + customer.getLastName());
+        orderDetails.put("userId", user.getId());
+        orderDetails.put("userEmail", user.getEmail());
+        orderDetails.put("totalProducts", order.getProductList().size());
+        orderDetails.put("totalAmount", totalPrice);
+
+        List<Map<String, Object>> productsDetails = order.getProductList().stream()
+                .map(op -> {
+                    Map<String, Object> p = new HashMap<>();
+                    p.put("productId", op.getProduct().getId());
+                    p.put("productName", op.getProduct().getProductName());
+                    p.put("quantity", op.getQuantity());
+                    p.put("pricePerUnit", op.getPricePerUnit());
+                    return p;
+                })
+                .collect(Collectors.toList());
+
+        orderDetails.put("products", productsDetails);
+
+        auditService.logEvent("ORDER_CREATE", "ORDER", order.getId(), orderDetails);
+
+
+
         //    System.out.println("Order created successfully with total price: " + totalPrice);
     }
 
@@ -281,6 +315,17 @@ public class OrderService {
             Invoice invoice = new Invoice(accounting, totalPrice, payDate);
             invoiceRepository.save(invoice);
 
+            Order order = accounting.getOrder();
+            Map<String, Object> invoiceDetails = new HashMap<>();
+            invoiceDetails.put("orderId", order.getId());
+            invoiceDetails.put("customerId", order.getCustomer().getId());
+            invoiceDetails.put("customerName", order.getCustomer().getFirstName() + " " + order.getCustomer().getLastName());
+            invoiceDetails.put("accountingId", accounting.getId());
+            invoiceDetails.put("totalAmount", totalPrice);
+            invoiceDetails.put("paymentMethod", "CASH");
+
+            auditService.logEvent("INVOICE_CREATE", "INVOICE", invoice.getId(), invoiceDetails);
+
 
             // Notification for new invoice
             notificationService.createAndSendNotification(
@@ -323,6 +368,15 @@ public class OrderService {
 
         for (Accounting accounting : accountings) {
             try {
+                Map<String, Object> deletionDetails = new HashMap<>();
+                deletionDetails.put("orderId", accounting.getOrder().getId());
+                deletionDetails.put("accountingId", accounting.getId());
+                deletionDetails.put("totalAmount", accounting.getTotalPrice());
+                deletionDetails.put("cancellationDate", accounting.getDate().toString());
+
+                auditService.logEvent("ACCOUNTING_DELETED", "ACCOUNTING",
+                        accounting.getId(), deletionDetails);
+
                 accountingRepository.deleteByIdAndStateTwo(accounting.getId());
                 logger.info("Deleted accounting with ID: {}", accounting.getId());
             } catch (Exception e) {
@@ -338,6 +392,16 @@ public class OrderService {
         if (!accountings.isEmpty()) {
             for (Accounting accounting : accountings) {
                 try {
+
+                    Map<String, Object> cancellationDetails = new HashMap<>();
+                    cancellationDetails.put("orderId", accounting.getOrder().getId());
+                    cancellationDetails.put("accountingId", accounting.getId());
+                    cancellationDetails.put("originalDueDate", accounting.getDate().toString());
+                    cancellationDetails.put("cancellationReason", "Automatsko otkazivanje zbog neplaćanja");
+
+                    auditService.logEvent("ORDER_AUTO_CANCELLED", "ORDER",
+                            accounting.getOrder().getId(), cancellationDetails);
+
                     accounting.setState((short) 2);
                     accountingRepository.save(accounting);
 
@@ -367,7 +431,20 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        Map<String, Object> deletionDetails = new HashMap<>();
+        deletionDetails.put("customerId", order.getCustomer().getId());
+        deletionDetails.put("customerName", order.getCustomer().getFirstName() + " " + order.getCustomer().getLastName());
+        deletionDetails.put("userId", order.getUser().getId());
+        deletionDetails.put("userEmail", order.getUser().getEmail());
+        deletionDetails.put("totalProducts", order.getProductList().size());
 
+        List<String> productNames = order.getProductList().stream()
+                .map(op -> op.getProduct().getProductName())
+                .collect(Collectors.toList());
+
+        deletionDetails.put("products", productNames);
+
+        auditService.logEvent("ORDER_DELETED", "ORDER", orderId, deletionDetails);
 
 //        // Provera da li postoji faktura
 //        if (order.getAccounting() != null && order.getAccounting().getInvoice() != null) {
